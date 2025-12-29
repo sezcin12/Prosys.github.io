@@ -476,5 +476,132 @@
         App.init();
         document.addEventListener('keyup', (e) => { if (e.key === 'PrintScreen') { document.getElementById('screenMask').classList.remove('hidden-force'); setTimeout(() => document.getElementById('screenMask').classList.add('hidden-force'), 5000); } });
     </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        // Kullanıcı Ayarları
+        const firebaseConfig = {
+            apiKey: "AIzaSyAg1smzGukoS6hieJkWFCHyeiGeP2NzMBo",
+            authDomain: "prosys-19788.firebaseapp.com",
+            projectId: "prosys-19788",
+            storageBucket: "prosys-19788.firebasestorage.app",
+            messagingSenderId: "501709271602",
+            appId: "1:501709271602:web:27e759c206074c5114822b"
+        };
+
+        // Firebase Başlatma
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        console.log("🔥 ProSys Online Modu Devrede");
+
+        // 1. KAYIT İŞLEMİNİ BULUTA BAĞLA
+        const originalRegister = App.register;
+        App.register = async function() {
+            const oldLen = this.db.users.length;
+            originalRegister.apply(this, arguments); 
+            const newLen = this.db.users.length;
+
+            if (newLen > oldLen) {
+                const newUser = this.db.users[newLen - 1];
+                try {
+                    await setDoc(doc(db, "requests", newUser.id.toString()), newUser);
+                    console.log("✅ Firebase: Kayıt isteği gönderildi.");
+                } catch (e) {
+                    console.error("Firebase Hatası:", e);
+                }
+            }
+        };
+
+        // 2. ADMIN İŞLEMLERİNİ BULUTA BAĞLA
+        const originalAdmAction = App.admUserAction;
+        App.admUserAction = async function(uid, act) {
+            const targetUser = this.db.users.find(x => x.id === uid);
+            originalAdmAction.apply(this, arguments);
+            if (!targetUser) return;
+
+            try {
+                const userIdStr = uid.toString();
+                if (act === 'approve') {
+                    const userToMove = {...targetUser, approved: true};
+                    await setDoc(doc(db, "users", userIdStr), userToMove);
+                    await deleteDoc(doc(db, "requests", userIdStr));
+                } 
+                else if (act === 'delete') {
+                    await deleteDoc(doc(db, "requests", userIdStr));
+                    await deleteDoc(doc(db, "users", userIdStr));
+                }
+            } catch (e) { console.error(e); }
+        };
+
+        // 3. DUYURULARI BULUTA BAĞLA
+        const originalSaveAnn = App.saveAnnouncement;
+        App.saveAnnouncement = async function() {
+            originalSaveAnn.apply(this, arguments);
+            try { await setDoc(doc(db, "system_data", "global"), { announcement: this.db.announcement }); } catch(e) {}
+        };
+
+        const originalClearAnn = App.clearAnnouncement;
+        App.clearAnnouncement = async function() {
+            originalClearAnn.apply(this, arguments);
+            try { await setDoc(doc(db, "system_data", "global"), { announcement: "" }); } catch(e) {}
+        };
+
+        // 4. CANLI DİNLEME (Listener)
+        function startListening() {
+            // A. Bekleyen Kayıtlar
+            onSnapshot(collection(db, "requests"), (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    const d = change.doc.data();
+                    const exists = App.db.users.find(u => u.id == d.id);
+                    if (change.type === "added" && !exists) {
+                        App.db.users.push(d);
+                        refreshAdminUI();
+                    }
+                    if (change.type === "removed") {
+                        const idx = App.db.users.findIndex(u => u.id == d.id && !u.approved);
+                        if(idx > -1) { App.db.users.splice(idx, 1); refreshAdminUI(); }
+                    }
+                });
+                App.save();
+            });
+
+            // B. Onaylı Kullanıcılar
+            onSnapshot(collection(db, "users"), (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    const d = change.doc.data();
+                    const idx = App.db.users.findIndex(u => u.id == d.id);
+                    if (change.type === "added") {
+                        if(idx === -1) App.db.users.push(d); else App.db.users[idx] = d;
+                    }
+                    if (change.type === "modified" && idx > -1) App.db.users[idx] = d;
+                    if (change.type === "removed" && idx > -1) App.db.users.splice(idx, 1);
+                    
+                    refreshAdminUI();
+                });
+                App.save();
+            });
+
+            // C. Duyurular
+            onSnapshot(doc(db, "system_data", "global"), (docSnap) => {
+                if (docSnap.exists()) {
+                    App.db.announcement = docSnap.data().announcement || "";
+                    App.renderUI();
+                    const annInp = document.getElementById('newAnnInp');
+                    if(annInp) annInp.value = App.db.announcement;
+                }
+            });
+        }
+
+        function refreshAdminUI() {
+            if (App.user && App.user.role === 'admin' && !document.getElementById('contentArea').classList.contains('hidden-force')) {
+                try { App.renderAdmin(); } catch(e) {}
+            }
+        }
+
+        startListening();
+    </script>
 </body>
 </html>
