@@ -9,7 +9,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        /* TEMEL AYARLAR */
         body { 
             background-color: #050505; 
             color: #e5e7eb; 
@@ -31,12 +30,10 @@
         .glass { background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
         .hidden-force { display: none !important; }
         
-        /* BLUR KİLİDİ */
         .blur-lock { filter: blur(30px); pointer-events: auto; transform: scale(1.02); opacity: 0.6; }
 
         .support-btn { position: fixed; bottom: 20px; right: 20px; z-index: 90; width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #2563eb, #1d4ed8); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4); cursor: pointer; transition: transform 0.3s; }
         
-        /* Animasyonlar */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
     </style>
@@ -166,8 +163,6 @@
                 const raw = localStorage.getItem(this.DB_KEY);
                 if (raw) {
                     this.db = JSON.parse(raw);
-                    if(!this.db.support) this.db.support = [];
-                    if(!this.db.catalogRequests) this.db.catalogRequests = [];
                 } else {
                     this.hardReset();
                 }
@@ -191,41 +186,13 @@
                 const p = document.getElementById('logPass').value;
                 const found = this.db.users.find(x => x.user === u && x.pass === p);
                 
-                if(!found) return Swal.fire({icon:'error', text:'Hatalı giriş veya kullanıcı bulunamadı!', background:'#111', color:'#fff'});
+                if(!found) return Swal.fire({icon:'error', text:'Hatalı giriş!', background:'#111', color:'#fff'});
                 if(!found.approved) return Swal.fire({icon:'warning', text:'Onay bekliyor.', background:'#111', color:'#fff'});
                 
                 this.user = found;
                 document.getElementById('authOverlay').classList.add('hidden-force');
                 document.getElementById('mainApp').classList.remove('hidden-force');
                 this.renderUI();
-            },
-
-            register: function() {
-                const u = document.getElementById('regUser').value.trim().toLowerCase();
-                const p = document.getElementById('regPass').value;
-                const c = document.getElementById('consentCheck').checked;
-                
-                if(!u || !p || !c) return Swal.fire({icon:'error', text:'Lütfen tüm alanları doldurun!', background:'#111', color:'#fff'});
-                if(this.db.users.some(x => x.user === u)) return Swal.fire({icon:'error', text:'Bu kullanıcı adı alınmış!', background:'#111', color:'#fff'});
-
-                const id = Math.floor(1000 + Math.random() * 8999);
-                this.db.users.push({id:id, user:u, pass:p, role:'user', approved:false, viewAll:false, avatar:'', notifs:[], consent:true});
-                this.save();
-                
-                Swal.fire({
-                    icon: 'success', 
-                    title: 'KAYIT İŞLEMİ TAMAM', 
-                    text: 'Talebiniz sisteme başarıyla iletildi. Admin onayı sonrası giriş yapabilirsiniz.', 
-                    background: '#111', 
-                    color: '#fff',
-                    confirmButtonText: 'TAMAM',
-                    confirmButtonColor: '#2563eb'
-                }).then(() => {
-                    document.getElementById('regUser').value = '';
-                    document.getElementById('regPass').value = '';
-                    document.getElementById('consentCheck').checked = false;
-                    this.toggleAuth(false);
-                });
             },
 
             renderUI: function() {
@@ -236,11 +203,9 @@
                 if(this.user.role === 'admin') document.getElementById('adminMenu').classList.remove('hidden-force');
                 
                 const cL = document.getElementById('catalogList'); cL.innerHTML = '';
-                
-                // Admin ise Kategori Silme Butonu
                 this.db.catalogs.forEach(c => {
                     const deleteBtn = (this.user.role === 'admin') 
-                        ? `<button onclick="event.stopPropagation(); App.deleteCatalog('${c.id}')" class="px-2 py-1 text-gray-600 hover:text-red-500 transition-colors" title="Kategoriyi Sil"><i class="fa-solid fa-trash-can"></i></button>`
+                        ? `<button onclick="event.stopPropagation(); App.deleteCatalog('${c.id}')" class="px-2 py-1 text-gray-600 hover:text-red-500 transition-colors"><i class="fa-solid fa-trash-can"></i></button>`
                         : '';
 
                     cL.innerHTML += `
@@ -267,7 +232,6 @@
                 
                 let h = `<div class="max-w-4xl mx-auto space-y-8 pb-32">`;
 
-                // 1. DUYURU
                 h += `<div class="bg-[#0a0a0a] p-8 rounded-[2rem] border border-gray-800 shadow-2xl">
                     <h3 class="text-[10px] font-black text-red-500 uppercase mb-5 tracking-[0.3em] italic">Sistem Geneli Duyuru</h3>
                     <div class="flex gap-3">
@@ -276,7 +240,6 @@
                     </div>
                 </div>`;
 
-                // 2. MEDYA ONAY
                 const pendingPhotos = this.db.photos.filter(p => p.status === 'pending');
                 h += `<div class="bg-[#0a0a0a] p-8 rounded-[2rem] border border-gray-800 border-l-4 border-l-yellow-500">
                     <h3 class="text-[10px] font-black text-yellow-500 uppercase mb-5 tracking-[0.3em] italic">Medya Onay Kuyruğu</h3>
@@ -290,8 +253,8 @@
                         <div class="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-2 transition-all p-2">
                             <span class="text-[8px] text-gray-400 font-bold uppercase mb-1">Kat: ${catName}</span>
                             <div class="flex gap-2">
-                                <button onclick="App.photoAction(${p.id}, 'approve')" class="bg-green-600 p-3 rounded-full hover:scale-110 shadow-lg"><i class="fa-solid fa-check text-xs"></i></button>
-                                <button onclick="App.photoAction(${p.id}, 'delete')" class="bg-red-600 p-3 rounded-full hover:scale-110 shadow-lg"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                                <button onclick="App.photoAction('${p.id}', 'approve')" class="bg-green-600 p-3 rounded-full hover:scale-110 shadow-lg"><i class="fa-solid fa-check text-xs"></i></button>
+                                <button onclick="App.photoAction('${p.id}', 'delete')" class="bg-red-600 p-3 rounded-full hover:scale-110 shadow-lg"><i class="fa-solid fa-trash-can text-xs"></i></button>
                             </div>
                         </div>
                         <p class="absolute bottom-2 left-2 text-[8px] font-black text-white bg-black/60 px-2 py-0.5 rounded-full uppercase">@${p.uploader}</p>
@@ -299,28 +262,6 @@
                 });
                 h += `</div></div>`;
 
-                // --- 3. KATEGORİ TALEPLERİ (YENİ EKLENEN KISIM) ---
-                const catReqs = this.db.catalogRequests || [];
-                h += `<div class="bg-[#0a0a0a] p-6 rounded-[2rem] border border-gray-800 border-l-4 border-purple-500">
-                    <h3 class="text-[10px] font-black text-purple-500 uppercase mb-4 tracking-[0.2em]">Kategori Talepleri</h3>
-                    <div class="space-y-2">`;
-                if(catReqs.length === 0) h += `<p class="text-[9px] text-gray-600 italic">Bekleyen kategori talebi yok.</p>`;
-                catReqs.forEach(r => {
-                    h += `<div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-gray-800">
-                        <div>
-                            <p class="text-xs font-black text-white uppercase">${r.name}</p>
-                            <p class="text-[9px] text-gray-500">Talep Eden: ${r.requester}</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="App.approveCatReq('${r.id}', '${r.name}')" class="bg-green-600 hover:bg-green-500 text-white p-2 rounded-lg text-[9px] font-bold">ONAYLA</button>
-                            <button onclick="App.deleteCatReq('${r.id}')" class="bg-red-600 hover:bg-red-500 text-white p-2 rounded-lg text-[9px] font-bold">REDDET</button>
-                        </div>
-                    </div>`;
-                });
-                h += `</div></div>`;
-                // ----------------------------------------------------
-
-                // 4. KULLANICILAR
                 const activeUsers = this.db.users.filter(u => u.approved && u.user !== 'admin');
                 h += `<div class="bg-[#0a0a0a] p-6 rounded-[2rem] border border-gray-800">
                     <div class="flex justify-between items-center mb-4">
@@ -329,7 +270,6 @@
                     </div>
                     <div id="activeUserList" class="space-y-2 max-h-[400px] overflow-y-auto custom-scroll">`;
                 activeUsers.forEach(u => {
-                    // VIP Süre Kontrolü
                     let vipStatus = 'NORMAL';
                     let vipClass = 'bg-gray-800 text-white';
                     if (u.viewAll) {
@@ -344,7 +284,7 @@
                     h += `<div class="user-row flex items-center justify-between p-3 bg-white/[0.02] rounded-xl border border-gray-900">
                         <div class="username-field"><span class="text-xs font-black text-white uppercase">${u.user}</span> <span class="text-[9px] text-gray-600 ml-1">ID: ${u.id}</span></div>
                         <div class="flex items-center gap-2">
-                            <input type="number" id="time-${u.id}" placeholder="Dk" class="w-12 bg-black border border-gray-800 rounded px-1 text-[9px] text-center text-white h-6 outline-none focus:border-purple-500" title="Boş bırakılırsa süresiz olur">
+                            <input type="number" id="time-${u.id}" placeholder="Dk" class="w-12 bg-black border border-gray-800 rounded px-1 text-[9px] text-center text-white h-6 outline-none focus:border-purple-500">
                             <button onclick="App.toggleBlurPower(${u.id})" class="${vipClass} hover:opacity-80 px-2 py-1 rounded-lg text-[8px] font-black w-20">${vipStatus}</button>
                             <button onclick="App.admUserAction(${u.id}, 'delete')" class="bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white px-2 py-1 rounded-lg text-[8px] font-black">SİL</button>
                         </div>
@@ -352,16 +292,6 @@
                 });
                 h += `</div></div>`;
                 
-                // Onay Bekleyenler
-                const pendingUsers = this.db.users.filter(u => !u.approved && u.user !== 'admin');
-                if(pendingUsers.length > 0) {
-                    h += `<div class="bg-[#0a0a0a] p-6 rounded-[2rem] border border-gray-800 border-l-4 border-yellow-500"><h3 class="text-[10px] font-black text-yellow-500 mb-2">Onay Bekleyenler</h3>`;
-                    pendingUsers.forEach(u => {
-                         h += `<div class="flex justify-between items-center mb-1"><span class="text-xs">${u.user}</span><div><button onclick="App.admUserAction(${u.id},'approve')" class="text-green-500 mr-2 font-bold text-[9px]">ONAY</button><button onclick="App.admUserAction(${u.id},'delete')" class="text-red-500 font-bold text-[9px]">RED</button></div></div>`;
-                    });
-                    h += `</div>`;
-                }
-
                 h += `</div>`; area.innerHTML = h;
             },
 
@@ -374,14 +304,12 @@
             },
 
             reqCatModal: function() {
-                // Admin ise Direkt Ekle, Değilse Talep Et
                 if (this.user.role === 'admin') {
                     Swal.fire({
                         title: 'Yeni Kategori Oluştur',
                         input: 'text',
                         inputPlaceholder: 'Kategori Adı',
                         showCancelButton: true,
-                        confirmButtonText: 'Oluştur',
                         confirmButtonColor: '#2563eb',
                         background: '#111', color: '#fff'
                     }).then(r => {
@@ -393,27 +321,11 @@
                         input: 'text',
                         inputPlaceholder: 'İstediğiniz kategori adı...',
                         showCancelButton: true,
-                        confirmButtonText: 'Talep Gönder',
                         background: '#111', color: '#fff'
                     }).then(r => {
                         if(r.value) App.sendCatReq(r.value);
                     });
                 }
-            },
-            
-            sendCatReq: function(name) { console.log("Request sent:", name); },
-            createCatalog: function() { 
-                Swal.fire({title:'Yeni Kategori', input:'text', background:'#111', color:'#fff'}).then(r => {
-                    if(r.value) App.addCatalogDb(r.value);
-                });
-            },
-            addCatalogDb: function(name) {}, // Firebase override yapacak
-            approveCatReq: function(id, name) {},
-            deleteCatReq: function(id) {},
-            deleteCatalog: function(id) {},
-
-            saveAnnouncement: function() {
-                // Firebase override yapacak
             },
 
             openCatalog: function(id) {
@@ -426,27 +338,13 @@
 
             renderGrid: function(photos, type, targetId) {
                 const area = document.getElementById('contentArea');
-                
-                // GÖRÜNTÜLEME YETKİ KONTROLÜ
-                let canView = false;
-                if (this.user.role === 'admin') {
-                    canView = true;
-                } else if (this.user.viewAll) {
-                    // Eğer süre tanımlıysa ve şu anki zaman süreyi geçtiyse yetki yok
-                    if (this.user.vipExpiry && Date.now() > this.user.vipExpiry) {
-                        canView = false;
-                    } else {
-                        canView = true;
-                    }
-                }
+                let canView = (this.user.role === 'admin' || (this.user.viewAll && (!this.user.vipExpiry || Date.now() < this.user.vipExpiry)));
                 
                 let h = `<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">`;
                 photos.forEach((p, idx) => {
-                    // İlk 5 resim herkese açık, sonrası VIP
                     const isLocked = !canView && (idx >= 5);
-                    
                     const clickAction = isLocked 
-                        ? "Swal.fire({title:'Erişim Kısıtlı', text:'VIP üyelik veya süre gerekli.', icon:'info', background:'#111', color:'#fff'})" 
+                        ? "Swal.fire({title:'Erişim Kısıtlı', text:'VIP üyelik gerekli.', background:'#111', color:'#fff'})" 
                         : `App.lightbox('${p.src}')`;
 
                     h += `<div class="aspect-square bg-black rounded-3xl relative group overflow-hidden border border-gray-900 shadow-2xl">
@@ -454,72 +352,31 @@
                              class="w-full h-full object-cover transition-all duration-700 ${isLocked ? 'blur-lock' : 'group-hover:scale-110'}" 
                              onclick="${clickAction}">
                         ${isLocked ? `<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20"><i class="fa-solid fa-lock text-white/50 text-4xl mb-2"></i></div>` : ''}
-                        
-                        ${this.user.role === 'admin' ? `<button onclick="App.deletePhoto(${p.id}, '${type}', '${targetId}')" class="absolute top-4 right-4 bg-red-600 text-white p-2.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 z-30 shadow-2xl"><i class="fa-solid fa-trash-can text-[10px]"></i></button>` : ''}
+                        ${this.user.role === 'admin' ? `<button onclick="App.deletePhoto('${p.id}', '${type}', '${targetId}')" class="absolute top-4 right-4 bg-red-600 text-white p-2.5 rounded-xl opacity-0 group-hover:opacity-100 z-30"><i class="fa-solid fa-trash-can text-[10px]"></i></button>` : ''}
                     </div>`;
                 });
                 h += `</div>`; 
                 area.innerHTML = h;
             },
 
-            deletePhoto: async function(pid, type, targetId) {
-                if(this.user.role !== 'admin') return;
-                try {
-                    window.dispatchEvent(new CustomEvent('reqDeletePhoto', { detail: pid }));
-                    this.db.photos = this.db.photos.filter(x => x.id !== pid);
-                    this.renderGrid(this.db.photos.filter(p => p.target === targetId), type, targetId);
-                } catch(e) {}
-            },
-            
-            photoAction: function(pid, act) {}, // Firebase override
-
             uploadModal: function() {
                 const sel = document.getElementById('targetSel'); sel.innerHTML = '<option disabled selected>NEREYE YÜKLENECEK?</option>';
-                this.db.catalogs.forEach(c => sel.innerHTML += `<option value="${c.id}">Kategori: ${c.name}</option>`);
+                this.db.catalogs.forEach(c => sel.innerHTML += `<option value="${c.id}">${c.name}</option>`);
                 this.modal('uploadModal');
-            },
-
-            previewFile: function() {
-                const f = document.getElementById('fileInp').files[0];
-                if(f) { const r = new FileReader(); r.onload = (e) => { 
-                    document.getElementById('prevImg').src = e.target.result; 
-                    document.getElementById('prevImg').classList.remove('hidden-force'); 
-                    document.getElementById('prevTxt').classList.add('hidden-force'); 
-                }; r.readAsDataURL(f); }
-            },
-
-            doUpload: function() {
-                const now = Date.now();
-                if(now - this.lastUploadTime < 3000) return Swal.fire({icon:'warning', title:'Çok Hızlı!', text:'Bekleyiniz.', background:'#111', color:'#fff'});
-                if(this.user.role !== 'admin') {
-                    if(this.db.photos.filter(p => p.uploader === this.user.user && p.status === 'pending').length >= 10) return Swal.fire({icon:'error', text:'Limit dolu.', background:'#111', color:'#fff'});
-                }
-                const src = document.getElementById('prevImg').src;
-                const target = document.getElementById('targetSel').value;
-                if(!src || !target) return;
-                
-                this.lastUploadTime = now;
-                const status = (this.user.role === 'admin') ? 'approved' : 'pending';
-                this.db.photos.push({id:Date.now(), src:src, target:target, uploader:this.user.user, status: status});
-                this.save(); this.closeModal('uploadModal');
-                Swal.fire({icon:'success', text: status==='pending'?'Onaya gönderildi':'Yüklendi', background:'#111', color:'#fff'});
             },
 
             changePassModal: function() {
                 Swal.fire({
-                    title: 'Yeni Şifre Belirle',
-                    html: `<input type="password" id="oldP" class="swal2-input bg-black text-white" placeholder="Mevcut Şifreniz">
-                           <input type="password" id="newP" class="swal2-input bg-black text-white" placeholder="Yeni Şifreniz">`,
-                    confirmButtonText: 'Şifreyi Güncelle', showCancelButton: true, background:'#111', color:'#fff'
+                    title: 'Şifre Güncelle',
+                    html: `<input type="password" id="oldP" class="swal2-input bg-black text-white" placeholder="Eski Şifre"><input type="password" id="newP" class="swal2-input bg-black text-white" placeholder="Yeni Şifre">`,
+                    confirmButtonText: 'Güncelle', showCancelButton: true, background:'#111', color:'#fff'
                 }).then(r => {
                     if(r.isConfirmed) {
                         const o = document.getElementById('oldP').value;
                         const n = document.getElementById('newP').value;
                         if(this.user.pass === o && n) {
                             this.user.pass = n; this.save();
-                            Swal.fire({icon:'success', text:'Şifre başarıyla değişti.', background:'#111', color:'#fff'});
-                        } else {
-                            Swal.fire({icon:'error', text:'Bilgileri kontrol edin!', background:'#111', color:'#fff'});
+                            Swal.fire({icon:'success', text:'Şifre değişti.', background:'#111', color:'#fff'});
                         }
                     }
                 });
@@ -529,29 +386,22 @@
                 Swal.fire({
                     title: 'Canlı Destek',
                     input: 'textarea',
-                    inputPlaceholder: 'Sorununuz nedir?',
-                    showCancelButton: true, confirmButtonText: 'Gönder', background:'#111', color:'#fff'
+                    inputPlaceholder: 'Mesajınız...',
+                    showCancelButton: true, background:'#111', color:'#fff'
                 }).then(r => {
                     if(r.value) App.sendSupportDb(r.value);
                 });
             },
-            sendSupportDb: function(msg) {}, 
-            replySupport: function(docId, uid) {},
-
-            admUserAction: function(uid, act) {}, // Firebase override
 
             toggleAuth: (reg) => {
                 document.getElementById('loginForm').classList.toggle('hidden-force', reg);
                 document.getElementById('regForm').classList.toggle('hidden-force', !reg);
             },
-            toggleBlurPower: function(uid) { 
-                // Local only logic replaced by Firebase override
-            },
             toggleNotif: function() { document.getElementById('notifPanel').classList.toggle('hidden-force'); this.renderNotifs(); },
             renderNotifs: function() {
                 const l = document.getElementById('notifList'); l.innerHTML = '';
-                if(this.user.notifs.length === 0) l.innerHTML = '<p class="text-[9px] text-gray-600 italic">Henüz bir bildirim bulunmuyor.</p>';
-                this.user.notifs.forEach(n => l.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl border border-gray-800 text-[10px] shadow-lg animate-fade-in">${n.msg}</div>`);
+                if(this.user.notifs.length === 0) l.innerHTML = '<p class="text-[9px] text-gray-600 italic">Bildirim yok.</p>';
+                this.user.notifs.forEach(n => l.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl border border-gray-800 text-[10px] animate-fade-in">${n.msg}</div>`);
             },
             modal: (id) => document.getElementById(id).classList.remove('hidden-force'),
             closeModal: (id) => {
@@ -571,7 +421,7 @@
             if (e.key === 'PrintScreen') { 
                 document.getElementById('screenMask').style.display = 'flex'; 
                 setTimeout(() => document.getElementById('screenMask').style.display = 'none', 3000); 
-                navigator.clipboard.writeText('Ekran görüntüsü almak yasaktır!');
+                navigator.clipboard.writeText('Ekran görüntüsü yasaktır!');
             } 
         });
         document.addEventListener('contextmenu', event => event.preventDefault());
@@ -579,277 +429,224 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, addDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAg1smzGukoS6hieJkWFCHyeiGeP2NzMBo",
             authDomain: "prosys-19788.firebaseapp.com",
             projectId: "prosys-19788",
-            storageBucket: "prosys-19788.firebasestorage.app",
+            storageBucket: "prosys-19788.appspot.com",
             messagingSenderId: "501709271602",
             appId: "1:501709271602:web:27e759c206074c5114822b"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
-        window.addEventListener('reqDeletePhoto', async (e) => {
-            const pid = e.detail;
-            try { await deleteDoc(doc(db, "photos", pid.toString())); } catch(err) { console.error(err); }
-        });
-
-        const originalRegister = App.register;
-        App.register = async function() {
-            const oldLen = this.db.users.length;
-            originalRegister.apply(this, arguments); 
-            if (this.db.users.length > oldLen) {
-                const newUser = this.db.users[this.db.users.length - 1];
-                try { await setDoc(doc(db, "requests", newUser.id.toString()), newUser); } catch (e) { console.error(e); }
+        App.previewFile = function() {
+            const f = document.getElementById('fileInp').files[0];
+            if(f) {
+                const r = new FileReader();
+                r.onload = (e) => {
+                    document.getElementById('prevImg').src = e.target.result;
+                    document.getElementById('prevImg').classList.remove('hidden-force');
+                    document.getElementById('prevTxt').classList.add('hidden-force');
+                };
+                r.readAsDataURL(f);
             }
         };
 
-        // ----------------------------------------------------
-        // DÜZELTİLEN VE EKLENEN YERLER
-        // ----------------------------------------------------
+        App.doUpload = async function() {
+            const file = document.getElementById('fileInp').files[0];
+            const target = document.getElementById('targetSel').value;
+            
+            if(!file || !target || target === "NEREYE YÜKLENECEK?") {
+                return Swal.fire({icon:'error', text:'Dosya ve kategori seçin!', background:'#111', color:'#fff'});
+            }
 
-        // 1. DUYURU KAYDETME
-        App.saveAnnouncement = async function() {
-            const val = document.getElementById('newAnnInp').value;
-            if(!val) return;
-            this.db.announcement = val; // Lokal güncelle
-            try { 
-                await setDoc(doc(db, "system_data", "global"), { announcement: val }, { merge: true }); 
-                Swal.fire({icon:'success', text:'Duyuru Yayınlandı!', background:'#111', color:'#fff'});
-            } catch(e) { console.error(e); }
+            const now = Date.now();
+            if(now - App.lastUploadTime < 3000) return;
+            
+            if(App.user.role !== 'admin') {
+                const pendingCount = App.db.photos.filter(p => p.uploader === App.user.user && p.status === 'pending').length;
+                if(pendingCount >= 10) return Swal.fire({icon:'error', text:'Limit dolu.', background:'#111', color:'#fff'});
+            }
+
+            Swal.fire({
+                title: 'Yükleniyor...',
+                didOpen: () => { Swal.showLoading(); },
+                allowOutsideClick: false,
+                background: '#111', color: '#fff'
+            });
+
+            try {
+                const fileId = Date.now() + "_" + Math.floor(Math.random() * 1000);
+                const storageRef = ref(storage, 'photos/' + fileId);
+                
+                await uploadBytes(storageRef, file);
+                const downloadURL = await getDownloadURL(storageRef);
+
+                const status = (App.user.role === 'admin') ? 'approved' : 'pending';
+                const photoData = {
+                    id: fileId,
+                    src: downloadURL,
+                    target: target,
+                    uploader: App.user.user,
+                    status: status,
+                    storagePath: 'photos/' + fileId,
+                    createdAt: Date.now()
+                };
+
+                await setDoc(doc(db, "photos", fileId.toString()), photoData);
+                
+                App.lastUploadTime = Date.now();
+                App.closeModal('uploadModal');
+                Swal.fire({icon:'success', text: status==='pending'?'Onaya gönderildi':'Yüklendi', background:'#111', color:'#fff'});
+            } catch (e) {
+                console.error(e);
+                Swal.fire({icon:'error', text:'Yükleme başarısız!', background:'#111', color:'#fff'});
+            }
         };
 
-        // 2. KATEGORİ SİLME
-        App.deleteCatalog = async function(catId) {
-            Swal.fire({
-                title: 'Kategori Silinsin mi?',
-                text: "İçindeki resimler sistemde kalır ama bu kategori erişilemez olur.",
+        App.deletePhoto = async function(pid, type, targetId) {
+            if(App.user.role !== 'admin') return;
+            
+            const photo = App.db.photos.find(p => p.id == pid);
+            if(!photo) return;
+
+            const result = await Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu işlem geri alınamaz!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Evet, Sil',
                 background: '#111', color: '#fff'
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    try {
-                        await deleteDoc(doc(db, "catalogs", catId));
-                        Swal.fire({icon:'success', title:'Silindi', background:'#111', color:'#fff', timer: 1500, showConfirmButton: false});
-                    } catch(e) { console.error(e); }
-                }
             });
-        };
 
-        // 3. ADMİN ÜYE İŞLEMLERİ (SİLME / ONAY) - İSİM TEKRAR KULLANILABİLİR
-        App.admUserAction = async function(uid, act) {
-            const userIdStr = uid.toString();
-            
-            if (act === 'delete') {
-                Swal.fire({
-                    title: 'Kullanıcıyı Sil?',
-                    text: "Bu kullanıcı silinecek ve ismi tekrar alınabilir olacak.",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Evet, Sil',
-                    background: '#111', color: '#fff'
-                }).then(async (result) => {
-                    if (result.isConfirmed) {
-                        try {
-                            // Veritabanından sil (İsim boşa çıkar)
-                            await deleteDoc(doc(db, "users", userIdStr));
-                            // İsteklerde varsa ordan da sil
-                            await deleteDoc(doc(db, "requests", userIdStr));
-                            Swal.fire({icon:'success', text:'Kullanıcı Silindi', background:'#111', color:'#fff', timer: 1500, showConfirmButton: false});
-                        } catch (e) { console.error(e); }
+            if (result.isConfirmed) {
+                try {
+                    if(photo.storagePath) {
+                        const storageRef = ref(storage, photo.storagePath);
+                        await deleteObject(storageRef);
                     }
-                });
-            } else if (act === 'approve') {
-                const targetUser = this.db.users.find(x => x.id === uid);
-                if (targetUser) {
-                    try {
-                        await setDoc(doc(db, "users", userIdStr), {...targetUser, approved: true});
-                        await deleteDoc(doc(db, "requests", userIdStr));
-                        Swal.fire({icon:'success', text:'Kullanıcı Onaylandı', background:'#111', color:'#fff', timer: 1500, showConfirmButton: false});
-                    } catch (e) { console.error(e); }
+                    await deleteDoc(doc(db, "photos", pid.toString()));
+                } catch(e) {
+                    console.error(e);
+                    await deleteDoc(doc(db, "photos", pid.toString()));
                 }
             }
         };
 
-        // 4. BLUR (VIP) AÇMA KAPATMA ve SÜRE AYARI
-        App.toggleBlurPower = async function(uid) {
-            const u = this.db.users.find(x => x.id === uid);
-            if(!u) return;
-
-            // Input'tan süreyi al
-            const timeInput = document.getElementById(`time-${uid}`);
-            const minutes = timeInput ? parseInt(timeInput.value) : 0;
-            
-            const newStatus = !u.viewAll;
-            let vipExpiry = null;
-
-            // Eğer VIP açılıyorsa ve süre girilmişse zaman damgası oluştur
-            if (newStatus && minutes > 0) {
-                vipExpiry = Date.now() + (minutes * 60 * 1000);
-            } else if (!newStatus) {
-                // Kapatılıyorsa süreyi sıfırla
-                vipExpiry = null;
-            }
-
-            try {
-                await updateDoc(doc(db, "users", uid.toString()), { 
-                    viewAll: newStatus,
-                    vipExpiry: vipExpiry 
-                });
-                if(timeInput) timeInput.value = '';
-            } catch(e) { console.error(e); }
-        };
-
-        // ----------------------------------------------------
-
-        // 5. FOTOĞRAF YÜKLEME
-        const originalDoUpload = App.doUpload;
-        App.doUpload = async function() {
-            const src = document.getElementById('prevImg').src;
-            const target = document.getElementById('targetSel').value;
-            if(!src || !target) return;
-            const status = (App.user.role === 'admin') ? 'approved' : 'pending';
-            const newPhoto = { id: Date.now(), src: src, target: target, uploader: App.user.user, status: status };
-
-            try {
-                await setDoc(doc(db, "photos", newPhoto.id.toString()), newPhoto);
-                App.closeModal('uploadModal');
-                Swal.fire({icon:'success', text: status==='pending'?'Onaya gönderildi':'Yüklendi', background:'#111', color:'#fff'});
-            } catch (e) { console.error(e); }
-        };
-
-        // 6. FOTO ONAY/SİL
         App.photoAction = async function(pid, act) {
             try {
                 if(act === 'approve') {
                     await updateDoc(doc(db, "photos", pid.toString()), { status: 'approved' });
                 } else if (act === 'delete') {
-                    await deleteDoc(doc(db, "photos", pid.toString()));
+                    await App.deletePhoto(pid, null, null);
                 }
-                if(document.getElementById('contentArea')) App.renderAdmin();
             } catch(e) { console.error(e); }
         };
 
-        // 7. KATEGORİ EKLEME (GÜNCEL: DB'YE KAYIT)
+        App.register = async function() {
+            const u = document.getElementById('regUser').value.trim().toLowerCase();
+            const p = document.getElementById('regPass').value;
+            const c = document.getElementById('consentCheck').checked;
+            
+            if(!u || !p || !c) return Swal.fire({icon:'error', text:'Eksik alan!', background:'#111', color:'#fff'});
+            
+            const id = Math.floor(1000 + Math.random() * 8999);
+            const newUser = {id:id, user:u, pass:p, role:'user', approved:false, viewAll:false, avatar:'', notifs:[], consent:true};
+            
+            try {
+                await setDoc(doc(db, "requests", id.toString()), newUser);
+                Swal.fire({icon: 'success', title: 'Talep Gönderildi', background: '#111', color: '#fff'});
+                App.toggleAuth(false);
+            } catch (e) { console.error(e); }
+        };
+
+        App.saveAnnouncement = async function() {
+            const val = document.getElementById('newAnnInp').value;
+            try { await setDoc(doc(db, "system_data", "global"), { announcement: val }, { merge: true }); } catch(e) { console.error(e); }
+        };
+
         App.addCatalogDb = async function(name) {
             if(!name) return;
-            try { 
-                const newId = 'cat_' + Date.now(); 
-                await setDoc(doc(db, "catalogs", newId), { id: newId, name: name }); 
-                Swal.fire({icon:'success', text:'Kategori Oluşturuldu!', background:'#111', color:'#fff', timer: 1500, showConfirmButton: false});
-            } catch(e) { console.error(e); }
+            const newId = 'cat_' + Date.now();
+            try { await setDoc(doc(db, "catalogs", newId), { id: newId, name: name }); } catch(e) { console.error(e); }
         };
 
-        App.sendCatReq = async function(name) {
-            if(!name) return;
-            try { await addDoc(collection(db, "catalog_requests"), { name: name, requester: App.user.user, reqId: App.user.id }); Swal.fire({icon:'success', text:'İletildi.'}); } catch(e) {}
+        App.deleteCatalog = async function(catId) {
+            try { await deleteDoc(doc(db, "catalogs", catId)); } catch(e) { console.error(e); }
         };
-        App.approveCatReq = async function(docId, name) { 
-            try { 
-                // Önce kategoriyi oluştur
-                await App.addCatalogDb(name); 
-                // Sonra talebi sil
-                await deleteDoc(doc(db, "catalog_requests", docId)); 
-                if(document.getElementById('contentArea')) App.renderAdmin(); 
-            } catch(e) { console.error(e); } 
-        };
-        App.deleteCatReq = async function(docId) { 
-            try { 
-                await deleteDoc(doc(db, "catalog_requests", docId)); 
-                Swal.fire({icon:'success', text:'Talep Reddedildi.', background:'#111', color:'#fff', timer: 1000, showConfirmButton:false});
-                if(document.getElementById('contentArea')) App.renderAdmin(); 
-            } catch(e) { console.error(e); } 
-        };
-        App.sendSupportDb = async function(msg) { if(!msg) return; try { await addDoc(collection(db, "support"), { uid: App.user.id, user: App.user.user, msg: msg, date: Date.now() }); Swal.fire({icon:'success', text:'Gönderildi'}); } catch(e) {} };
-        App.replySupport = async function(docId, targetUid) { Swal.fire({ title: 'Cevap Yaz', input: 'text', showCancelButton: true }).then(async (r) => { if(r.value) { try { await deleteDoc(doc(db, "support", docId)); Swal.fire({icon:'success', text:'Yanıtlandı.'}); App.renderAdmin(); } catch(e) {} } }); };
 
-        function startListening() {
-            onSnapshot(collection(db, "requests"), (snap) => {
-                snap.docChanges().forEach((c) => {
-                    const d = c.doc.data();
-                    if (c.type === "added" && !App.db.users.find(u => u.id == d.id)) App.db.users.push(d);
-                    if (c.type === "removed") { const idx = App.db.users.findIndex(u => u.id == d.id && !u.approved); if(idx > -1) App.db.users.splice(idx, 1); }
-                });
-                refreshAdminUI();
-            });
-
-            onSnapshot(collection(db, "users"), (snap) => {
-                snap.docChanges().forEach((c) => {
-                    const d = c.doc.data();
-                    const idx = App.db.users.findIndex(u => u.id == d.id);
-                    if (c.type === "added" && idx === -1) App.db.users.push(d);
-                    else if (c.type === "modified" && idx > -1) App.db.users[idx] = d;
-                    else if (c.type === "removed" && idx > -1) App.db.users.splice(idx, 1);
-                });
-                App.renderUI();
-                refreshAdminUI();
-
-                // --- SİLİNEN KULLANICIYI ANINDA ATMA (KICK) MANTIĞI ---
-                // Eğer şu an giriş yapmış bir kullanıcı varsa (ve admin değilse)
-                if (App.user && App.user.role !== 'admin') {
-                    // Mevcut kullanıcı listesinde (App.db.users) kendi ID'si hala var mı diye bakar.
-                    const amIStillHere = App.db.users.find(u => u.id === App.user.id);
-                    
-                    // Eğer listede yoksam (Admin beni silmişse)
-                    if (!amIStillHere) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'HESABINIZ SİLİNDİ',
-                            text: 'Yönetici tarafından erişiminiz sonlandırıldı.',
-                            showConfirmButton: false,
-                            allowOutsideClick: false,
-                            timer: 3000
-                        }).then(() => {
-                            location.reload(); // Sayfayı yenileyerek çıkış yaptır
-                        });
+        App.admUserAction = async function(uid, act) {
+            const userIdStr = uid.toString();
+            try {
+                if (act === 'delete') {
+                    await deleteDoc(doc(db, "users", userIdStr));
+                    await deleteDoc(doc(db, "requests", userIdStr));
+                } else if (act === 'approve') {
+                    const reqDoc = App.db.users.find(x => x.id == uid);
+                    if(reqDoc) {
+                        await setDoc(doc(db, "users", userIdStr), {...reqDoc, approved: true});
+                        await deleteDoc(doc(db, "requests", userIdStr));
                     }
                 }
-                // ------------------------------------------------------
+            } catch (e) { console.error(e); }
+        };
+
+        App.toggleBlurPower = async function(uid) {
+            const u = App.db.users.find(x => x.id === uid);
+            if(!u) return;
+            const mins = parseInt(document.getElementById(`time-${uid}`).value) || 0;
+            const expiry = mins > 0 ? Date.now() + (mins * 60000) : null;
+            try { await updateDoc(doc(db, "users", uid.toString()), { viewAll: !u.viewAll, vipExpiry: expiry }); } catch(e) { console.error(e); }
+        };
+
+        function startListening() {
+            onSnapshot(collection(db, "users"), (snap) => {
+                App.db.users = App.db.users.filter(u => !u.approved);
+                snap.docs.forEach(d => {
+                    const data = d.data();
+                    const idx = App.db.users.findIndex(u => u.id == data.id);
+                    if(idx > -1) App.db.users[idx] = data; else App.db.users.push(data);
+                });
+                if (App.user && App.user.role !== 'admin') {
+                    const me = snap.docs.find(d => d.data().id == App.user.id);
+                    if (!me) location.reload(); else App.user = me.data();
+                }
+                App.renderUI(); refreshAdminUI();
+            });
+
+            onSnapshot(collection(db, "requests"), (snap) => {
+                snap.docs.forEach(d => {
+                    const data = d.data();
+                    if(!App.db.users.find(u => u.id == data.id)) App.db.users.push(data);
+                });
+                refreshAdminUI();
             });
 
             onSnapshot(collection(db, "catalogs"), (snap) => {
-                App.db.catalogs = []; snap.docs.forEach(doc => App.db.catalogs.push(doc.data()));
+                App.db.catalogs = snap.docs.map(d => d.data());
                 App.renderUI(); refreshAdminUI();
             });
 
             onSnapshot(collection(db, "photos"), (snap) => {
-                snap.docChanges().forEach((change) => {
-                    const d = change.doc.data();
-                    const idx = App.db.photos.findIndex(p => p.id == d.id);
-                    if (change.type === "added" || change.type === "modified") {
-                        if(idx === -1) App.db.photos.push(d); else App.db.photos[idx] = d;
-                    }
-                    if (change.type === "removed" && idx > -1) {
-                        App.db.photos.splice(idx, 1);
-                    }
-                });
+                App.db.photos = snap.docs.map(d => d.data());
                 const header = document.getElementById('pageHeader').innerText;
-                const cat = App.db.catalogs.find(c => c.name === header);
-                if(cat) App.openCatalog(cat.id);
+                const activeCat = App.db.catalogs.find(c => c.name === header);
+                if(activeCat) App.openCatalog(activeCat.id);
                 refreshAdminUI();
             });
 
             onSnapshot(doc(db, "system_data", "global"), (snap) => {
-                if (snap.exists()) { App.db.announcement = snap.data().announcement || ""; App.renderUI(); }
+                if (snap.exists()) { App.db.announcement = snap.data().announcement; App.renderUI(); }
             });
 
             onSnapshot(collection(db, "catalog_requests"), (snap) => {
-                App.db.catalogRequests = []; snap.docs.forEach(doc => App.db.catalogRequests.push({id: doc.id, ...doc.data()}));
-                refreshAdminUI();
-            });
-
-            onSnapshot(collection(db, "support"), (snap) => {
-                App.db.support = []; snap.docs.forEach(doc => App.db.support.push({docId: doc.id, ...doc.data()}));
+                App.db.catalogRequests = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 refreshAdminUI();
             });
         }
@@ -861,6 +658,98 @@
         }
 
         startListening();
-    </script>
-</body>
-</html>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
+
+/* 🔧 FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "AIzaSyAg1smzGukoS6hieJkWFCHyeiGeP2NzMBo",
+  authDomain: "prosys-19788.firebaseapp.com",
+  projectId: "prosys-19788",
+  storageBucket: "prosys-19788.appspot.com",
+  messagingSenderId: "501709271602",
+  appId: "1:501709271602:web:27e759c206074c5114822b"
+};
+
+/* 🔥 INIT */
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+/* 🔐 APP STATE (SADECE RAM) */
+window.App = {
+  user: { role: "user", user: "guest" },
+  db: { photos: [], catalogs: [], users: [] }
+};
+
+/* 📸 FOTOĞRAF YÜKLE */
+App.doUpload = async () => {
+  const file = document.getElementById("fileInp")?.files[0];
+  const target = document.getElementById("targetSel")?.value;
+  if (!file || !target) return alert("Dosya veya hedef yok");
+
+  const id = Date.now().toString();
+  const fileRef = ref(storage, `photos/${id}_${file.name}`);
+
+  try {
+    await uploadBytes(fileRef, file);
+    const url = await getDownloadURL(fileRef);
+
+    const status = App.user.role === "admin" ? "approved" : "pending";
+
+    await setDoc(doc(db, "photos", id), {
+      id,
+      src: url,
+      target,
+      uploader: App.user.user,
+      status,
+      createdAt: Date.now()
+    });
+
+    alert(status === "pending" ? "Fotoğraf onaya gönderildi" : "Fotoğraf yüklendi");
+  } catch (e) {
+    console.error(e);
+    alert("Yükleme hatası");
+  }
+};
+
+/* ✅ ONAY / ❌ SİL */
+App.photoAction = async (pid, action) => {
+  const photo = App.db.photos.find(p => p.id === pid);
+  if (!photo) return;
+
+  try {
+    if (action === "approve") {
+      await updateDoc(doc(db, "photos", pid), { status: "approved" });
+    }
+
+    if (action === "delete") {
+      const fileRef = ref(storage, photo.src);
+      await deleteObject(fileRef);
+      await deleteDoc(doc(db, "photos", pid));
+    }
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+/* 🔄 REALTIME – PHOTOS */
+onSnapshot(collection(db, "photos"), snap => {
+  App.db.photos = snap.docs.map(d => d.data());
+  App.renderUI?.();
+});
+
+/* 🔄 REALTIME – CATALOGS */
+onSnapshot(collection(db, "catalogs"), snap => {
+  App.db.catalogs = snap.docs.map(d => d.data());
+  App.renderUI?.();
+});
+
+/* 🔄 REALTIME – USERS */
+onSnapshot(collection(db, "users"), snap => {
+  App.db.users = snap.docs.map(d => d.data());
+  App.renderUI?.();
+});
+</script>
