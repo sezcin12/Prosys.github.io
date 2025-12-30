@@ -3,28 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProSys v11 - Admin Announcement Edition</title>
+    <title>ProSys v13 - Titan Gold</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        body { background-color: #050505; color: #e5e7eb; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        /* TEMEL AYARLAR */
+        body { 
+            background-color: #050505; 
+            color: #e5e7eb; 
+            font-family: 'Segoe UI', sans-serif; 
+            overflow: hidden;
+            -webkit-user-select: none; user-select: none; 
+        }
+        
+        .screenshot-mask {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000; z-index: 99999; display: none;
+            align-items: center; justify-content: center;
+            color: red; font-weight: bold; font-size: 20px;
+        }
+
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #111; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
         .glass { background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
         .hidden-force { display: none !important; }
-        .blur-lock { filter: blur(25px); pointer-events: none; transform: scale(1.1); }
+        
+        /* BLUR KİLİDİ */
+        .blur-lock { filter: blur(30px); pointer-events: auto; transform: scale(1.02); opacity: 0.6; }
+
         .support-btn { position: fixed; bottom: 20px; right: 20px; z-index: 90; width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #2563eb, #1d4ed8); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4); cursor: pointer; transition: transform 0.3s; }
-        .chat-bubble { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 13px; margin-bottom: 6px; }
-        .chat-me { background: #6d28d9; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .chat-you { background: #262626; align-self: flex-start; border-bottom-left-radius: 2px; }
+        
+        /* Animasyonlar */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
     </style>
 </head>
-<body class="h-screen flex flex-col">
+<body class="h-screen flex flex-col" oncontextmenu="return false;">
 
-    <div id="screenMask" class="fixed inset-0 bg-black z-[9999] hidden-force"></div>
+    <div id="screenMask" class="screenshot-mask">EKRAN GÖRÜNTÜSÜ ALMAK YASAKTIR!</div>
 
     <div id="globalAnnouncement" class="hidden-force bg-gradient-to-r from-red-600 via-purple-600 to-blue-600 w-full py-2.5 px-6 text-center text-white text-[12px] font-black italic relative z-[1000] shadow-lg">
         <i class="fa-solid fa-bullhorn mr-2 animate-bounce"></i> <span id="annText"></span>
@@ -35,25 +54,29 @@
         <div class="glass w-full max-w-sm p-8 rounded-3xl shadow-2xl border-t-2 border-purple-500">
             <div class="text-center mb-8">
                 <h1 class="text-4xl font-black text-white italic tracking-tighter uppercase">PRO<span class="text-purple-500">SYS</span></h1>
-                <p class="text-gray-500 text-[10px] uppercase tracking-[0.4em] mt-1">Titan Gold v11</p>
+                <p class="text-gray-500 text-[10px] uppercase tracking-[0.4em] mt-1">Titan Gold Final</p>
             </div>
             
             <div id="loginForm" class="space-y-4">
                 <input type="text" id="logUser" class="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-sm text-white outline-none focus:border-purple-500 transition-all" placeholder="Kullanıcı Adı">
                 <input type="password" id="logPass" class="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-sm text-white outline-none focus:border-purple-500 transition-all" placeholder="Şifre">
                 <button onclick="App.login()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-black py-4 rounded-xl transition-all shadow-lg shadow-purple-900/20">SİSTEME GİRİŞ</button>
-                <button onclick="App.toggleAuth(true)" class="w-full text-gray-500 hover:text-white text-xs font-bold uppercase tracking-widest">Yeni Hesap Oluştur</button>
+                <div class="text-center mt-4">
+                    <button onclick="App.toggleAuth(true)" class="text-gray-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Hesabın yok mu? Kayıt Ol</button>
+                </div>
             </div>
 
             <div id="regForm" class="hidden-force space-y-4">
-                <input type="text" id="regUser" class="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-sm text-white" placeholder="Benzersiz Kullanıcı Adı">
-                <input type="password" id="regPass" class="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-sm text-white" placeholder="Güçlü Bir Şifre">
+                <input type="text" id="regUser" class="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-sm text-white outline-none focus:border-blue-500" placeholder="Yeni Kullanıcı Adı">
+                <input type="password" id="regPass" class="w-full bg-[#111] border border-gray-800 p-4 rounded-xl text-sm text-white outline-none focus:border-blue-500" placeholder="Şifre Belirle">
                 <div class="bg-black/40 p-4 rounded-xl border border-gray-800 flex items-start gap-3">
-                    <input type="checkbox" id="consentCheck" class="mt-1 scale-125">
-                    <label for="consentCheck" class="text-[9px] text-gray-400 font-bold uppercase leading-relaxed">Verilerimin sistem kurallarına göre işlenmesini ve güvenliğini kabul ediyorum.</label>
+                    <input type="checkbox" id="consentCheck" class="mt-1 scale-125 accent-blue-600">
+                    <label for="consentCheck" class="text-[9px] text-gray-400 font-bold uppercase leading-relaxed">Sistem kurallarını kabul ediyorum.</label>
                 </div>
-                <button onclick="App.register()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl transition-all">KAYIT TALEBİ GÖNDER</button>
-                <button onclick="App.toggleAuth(false)" class="w-full text-gray-500 hover:text-white text-xs font-bold uppercase tracking-widest">Giriş'e Dön</button>
+                <button onclick="App.register()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl transition-all shadow-lg shadow-blue-900/20">KAYIT TALEBİ GÖNDER</button>
+                <div class="text-center mt-4">
+                    <button onclick="App.toggleAuth(false)" class="text-gray-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Giriş Ekranına Dön</button>
+                </div>
             </div>
         </div>
     </div>
@@ -68,12 +91,11 @@
                     </button>
                 </div>
                 <div>
-                    <p class="text-[10px] text-gray-600 font-black uppercase mb-3 px-2 tracking-[0.2em]">Galeriler</p>
+                    <div class="flex justify-between items-center px-2 mb-3">
+                        <p class="text-[10px] text-gray-600 font-black uppercase tracking-[0.2em]">Galeriler</p>
+                        <button onclick="App.reqCatModal()" class="text-[9px] text-gray-500 hover:text-white"><i class="fa-solid fa-plus"></i></button>
+                    </div>
                     <div id="catalogList" class="space-y-1"></div>
-                </div>
-                <div>
-                    <p class="text-[10px] text-blue-600 font-black uppercase mb-3 px-2 tracking-[0.2em]">Gruplar</p>
-                    <div id="groupList" class="space-y-1"></div>
                 </div>
             </div>
             
@@ -102,14 +124,6 @@
             </header>
             <div class="flex-1 flex overflow-hidden relative">
                 <div id="contentArea" class="flex-1 overflow-y-auto p-8 custom-scroll"></div>
-                <div id="chatPanel" class="hidden-force w-85 bg-[#080808] border-l border-gray-800 flex flex-col shadow-2xl">
-                    <div class="p-4 border-b border-gray-800 text-[10px] text-gray-500 font-black tracking-widest uppercase italic">Grup Mesajlaşma</div>
-                    <div id="chatBox" class="flex-1 overflow-y-auto p-4 flex flex-col custom-scroll bg-[rgba(0,0,0,0.2)]"></div>
-                    <form onsubmit="App.sendMsg(event)" class="p-4 bg-[#0a0a0a] flex gap-2">
-                        <input id="msgInput" type="text" class="flex-1 bg-black border border-gray-800 text-xs p-4 rounded-2xl text-white outline-none focus:border-purple-600 transition-all" placeholder="Mesajınızı buraya yazın...">
-                        <button type="submit" class="bg-purple-600 text-white w-12 h-12 rounded-2xl hover:bg-purple-500 transition-all shadow-lg shadow-purple-900/20"><i class="fa-solid fa-paper-plane"></i></button>
-                    </form>
-                </div>
             </div>
             <div onclick="App.openSupport()" class="support-btn hover:scale-110 active:scale-95"><i class="fa-solid fa-headset text-xl text-white"></i></div>
         </main>
@@ -132,7 +146,10 @@
     </div>
 
     <div id="notifPanel" class="fixed top-18 right-6 w-80 glass rounded-3xl z-[100] hidden-force p-5 max-h-[450px] overflow-y-auto custom-scroll border-t-2 border-purple-500 shadow-2xl">
-        <div class="text-[10px] font-black text-gray-500 mb-4 border-b border-gray-800 pb-2 uppercase tracking-[0.2em]">Bildirimler</div>
+        <div class="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
+            <span class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Bildirimler</span>
+            <button onclick="App.toggleNotif()" class="text-gray-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
         <div id="notifList" class="space-y-3"></div>
     </div>
 
@@ -140,21 +157,20 @@
 
     <script>
         const App = {
-            DB_KEY: 'prosys_v11_titan_persistent_v3',
-            db: { users:[], catalogs:[], groups:[], photos:[], announcement: "", support: [] },
+            DB_KEY: 'prosys_v13_final',
+            db: { users:[], catalogs:[], photos:[], announcement: "", support: [], catalogRequests: [] },
             user: null, 
-            activeGroup: null,
+            lastUploadTime: 0,
 
             init: function() {
                 const raw = localStorage.getItem(this.DB_KEY);
                 if (raw) {
                     this.db = JSON.parse(raw);
                     if(!this.db.support) this.db.support = [];
-                    if(!this.db.announcement) this.db.announcement = "";
+                    if(!this.db.catalogRequests) this.db.catalogRequests = [];
                 } else {
                     this.hardReset();
                 }
-                console.log("Sistem Aktif ve Veriler Yüklendi.");
             },
 
             save: function() {
@@ -165,7 +181,7 @@
                 this.db = {
                     users: [{id:1001, user:'admin', pass:'deccaloyunda12345', role:'admin', approved:true, viewAll:true, avatar:'', notifs:[], consent:true}],
                     catalogs: [{id:'cat1', name:'Vip Arşiv'}, {id:'cat2', name:'Genel Medya'}],
-                    groups: [], photos: [], announcement: "Hoş Geldiniz! Duyurular buradan yapılacak.", support: []
+                    photos: [], announcement: "Hoş Geldiniz!", support: [], catalogRequests: []
                 };
                 this.save();
             },
@@ -175,8 +191,8 @@
                 const p = document.getElementById('logPass').value;
                 const found = this.db.users.find(x => x.user === u && x.pass === p);
                 
-                if(!found) return Swal.fire({icon:'error', text:'Kullanıcı adı veya şifre hatalı!', background:'#111', color:'#fff'});
-                if(!found.approved) return Swal.fire({icon:'warning', text:'Hesabınız henüz onaylanmamış.', background:'#111', color:'#fff'});
+                if(!found) return Swal.fire({icon:'error', text:'Hatalı giriş veya kullanıcı bulunamadı!', background:'#111', color:'#fff'});
+                if(!found.approved) return Swal.fire({icon:'warning', text:'Onay bekliyor.', background:'#111', color:'#fff'});
                 
                 this.user = found;
                 document.getElementById('authOverlay').classList.add('hidden-force');
@@ -196,8 +212,20 @@
                 this.db.users.push({id:id, user:u, pass:p, role:'user', approved:false, viewAll:false, avatar:'', notifs:[], consent:true});
                 this.save();
                 
-                Swal.fire({icon:'success', title:'Kayıt Alındı', text:'ID: ' + id + ' - Admin onayı sonrası giriş yapabilirsiniz.', background:'#111', color:'#fff'});
-                this.toggleAuth(false);
+                Swal.fire({
+                    icon: 'success', 
+                    title: 'KAYIT İŞLEMİ TAMAM', 
+                    text: 'Talebiniz sisteme başarıyla iletildi. Admin onayı sonrası giriş yapabilirsiniz.', 
+                    background: '#111', 
+                    color: '#fff',
+                    confirmButtonText: 'TAMAM',
+                    confirmButtonColor: '#2563eb'
+                }).then(() => {
+                    document.getElementById('regUser').value = '';
+                    document.getElementById('regPass').value = '';
+                    document.getElementById('consentCheck').checked = false;
+                    this.toggleAuth(false);
+                });
             },
 
             renderUI: function() {
@@ -208,10 +236,21 @@
                 if(this.user.role === 'admin') document.getElementById('adminMenu').classList.remove('hidden-force');
                 
                 const cL = document.getElementById('catalogList'); cL.innerHTML = '';
-                this.db.catalogs.forEach(c => cL.innerHTML += `<button onclick="App.openCatalog('${c.id}')" class="w-full text-left p-3.5 rounded-2xl hover:bg-white/5 text-gray-400 text-[11px] font-bold flex items-center gap-3 transition-all"><i class="fa-solid fa-folder-open text-purple-600"></i> ${c.name}</button>`);
                 
-                const gL = document.getElementById('groupList'); gL.innerHTML = '';
-                this.db.groups.filter(g => g.members.includes(this.user.id)).forEach(g => gL.innerHTML += `<button onclick="App.openGroup('${g.id}')" class="w-full text-left p-3.5 rounded-2xl hover:bg-blue-600/5 text-blue-400 text-[11px] font-bold flex items-center gap-3 transition-all"><i class="fa-solid fa-hashtag"></i> ${g.name}</button>`);
+                // Admin ise Kategori Silme Butonu
+                this.db.catalogs.forEach(c => {
+                    const deleteBtn = (this.user.role === 'admin') 
+                        ? `<button onclick="event.stopPropagation(); App.deleteCatalog('${c.id}')" class="px-2 py-1 text-gray-600 hover:text-red-500 transition-colors" title="Kategoriyi Sil"><i class="fa-solid fa-trash-can"></i></button>`
+                        : '';
+
+                    cL.innerHTML += `
+                    <div class="flex items-center w-full hover:bg-white/5 rounded-2xl transition-all group mb-1 pr-2">
+                        <button onclick="App.openCatalog('${c.id}')" class="flex-1 text-left p-3.5 text-gray-400 text-[11px] font-bold flex items-center gap-3">
+                            <i class="fa-solid fa-folder-open text-purple-600"></i> ${c.name}
+                        </button>
+                        ${deleteBtn}
+                    </div>`;
+                });
                 
                 if(this.db.announcement) { 
                     document.getElementById('annText').innerText = this.db.announcement; 
@@ -222,136 +261,221 @@
                 const b = document.getElementById('notifBadge'); if(this.user.notifs.length > 0) b.classList.remove('hidden-force'); else b.classList.add('hidden-force');
             },
 
-            // --- ADMIN ÖZEL PANELİ ---
             renderAdmin: function() {
                 const area = document.getElementById('contentArea');
                 document.getElementById('pageHeader').innerText = 'KRALİYET YÖNETİM MERKEZİ';
-                document.getElementById('chatPanel').classList.add('hidden-force');
-                this.activeGroup = null;
-
+                
                 let h = `<div class="max-w-4xl mx-auto space-y-8 pb-32">`;
 
-                // 1. DUYURU YAZMA ALANI (İSTEDİĞİN ÖZELLİK)
+                // 1. DUYURU
                 h += `<div class="bg-[#0a0a0a] p-8 rounded-[2rem] border border-gray-800 shadow-2xl">
-                    <h3 class="text-[10px] font-black text-red-500 uppercase mb-5 tracking-[0.3em] italic">Sistem Geneli Duyuru Yayınla</h3>
+                    <h3 class="text-[10px] font-black text-red-500 uppercase mb-5 tracking-[0.3em] italic">Sistem Geneli Duyuru</h3>
                     <div class="flex gap-3">
-                        <input type="text" id="newAnnInp" class="flex-1 bg-black border border-gray-800 p-4 rounded-2xl text-xs text-white outline-none focus:border-red-600" placeholder="Tüm üyelere ne söylemek istersin?" value="${this.db.announcement}">
-                        <button onclick="App.saveAnnouncement()" class="bg-red-600 hover:bg-red-700 text-white px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all">Yayınla</button>
-                        <button onclick="App.clearAnnouncement()" class="bg-gray-800 hover:bg-gray-700 text-white px-4 rounded-2xl transition-all"><i class="fa-solid fa-trash-can"></i></button>
+                        <input type="text" id="newAnnInp" class="flex-1 bg-black border border-gray-800 p-4 rounded-2xl text-xs text-white outline-none" value="${this.db.announcement}" placeholder="Duyuru metni...">
+                        <button onclick="App.saveAnnouncement()" class="bg-red-600 text-white px-8 rounded-2xl font-black text-[10px]">YAYINLA</button>
                     </div>
-                    <p class="text-[9px] text-gray-600 mt-3 italic">* Yazdığın mesaj anında tüm kullanıcıların tepesinde görünür.</p>
                 </div>`;
 
-                // 2. Üye Onayları
-                h += `<div class="bg-[#0a0a0a] p-8 rounded-[2rem] border border-gray-800">
-                    <h3 class="text-[10px] font-black text-blue-500 uppercase mb-5 tracking-[0.3em] italic">Kullanıcı Kontrol Paneli</h3>
-                    <div class="space-y-3">`;
-                this.db.users.forEach(u => {
-                    if(u.user === 'admin') return;
-                    h += `<div class="flex items-center justify-between p-4 bg-white/[0.02] rounded-2xl border border-gray-900 hover:border-gray-700 transition-all">
-                        <div><span class="text-xs font-black text-white uppercase italic">${u.user}</span> <span class="text-[9px] text-gray-600 ml-2">ID: ${u.id}</span></div>
-                        <div class="flex gap-2">
-                            ${!u.approved ? `<button onclick="App.admUserAction(${u.id}, 'approve')" class="bg-green-600 px-4 py-2 rounded-xl text-[10px] font-black italic">ONAYLA</button>` : '<span class="text-green-500 text-[9px] font-black self-center mr-2 tracking-widest">AKTİF ÜYE</span>'}
-                            <button onclick="App.toggleBlurPower(${u.id})" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter">${u.viewAll ? 'Full Erişim' : 'Blur Aktif'}</button>
-                            <button onclick="App.admUserAction(${u.id}, 'delete')" class="bg-red-600/10 text-red-500 px-4 py-2 rounded-xl text-[10px] font-black hover:bg-red-600 hover:text-white transition-all">SİSTEMDEN AT</button>
-                        </div>
-                    </div>`;
-                });
-                h += `</div></div>`;
-
-                // 3. Medya Onay Kuyruğu
-                h += `<div class="bg-[#0a0a0a] p-8 rounded-[2rem] border border-gray-800">
-                    <h3 class="text-[10px] font-black text-yellow-500 uppercase mb-5 tracking-[0.3em] italic">Onay Bekleyen Fotoğraflar</h3>
+                // 2. MEDYA ONAY
+                const pendingPhotos = this.db.photos.filter(p => p.status === 'pending');
+                h += `<div class="bg-[#0a0a0a] p-8 rounded-[2rem] border border-gray-800 border-l-4 border-l-yellow-500">
+                    <h3 class="text-[10px] font-black text-yellow-500 uppercase mb-5 tracking-[0.3em] italic">Medya Onay Kuyruğu</h3>
                     <div class="grid grid-cols-4 gap-4">`;
-                const pending = this.db.photos.filter(p => p.status === 'pending');
-                if(pending.length === 0) h += `<p class="col-span-4 text-[10px] text-gray-700 italic font-bold">Bekleyen herhangi bir paylaşım yok.</p>`;
-                pending.forEach(p => {
+                if(pendingPhotos.length === 0) h+= `<p class="col-span-4 text-[9px] text-gray-600 italic">Onay bekleyen medya yok.</p>`;
+                pendingPhotos.forEach(p => {
+                    const cat = this.db.catalogs.find(c => c.id === p.target);
+                    const catName = cat ? cat.name : 'Bilinmiyor';
                     h += `<div class="relative group aspect-square rounded-2xl overflow-hidden border border-gray-800">
                         <img src="${p.src}" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-3 transition-all">
-                            <button onclick="App.photoAction(${p.id}, 'approve')" class="bg-green-600 p-4 rounded-full hover:scale-110 shadow-lg shadow-green-900/40"><i class="fa-solid fa-check text-xs"></i></button>
-                            <button onclick="App.photoAction(${p.id}, 'delete')" class="bg-red-600 p-4 rounded-full hover:scale-110 shadow-lg shadow-red-900/40"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                        <div class="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-2 transition-all p-2">
+                            <span class="text-[8px] text-gray-400 font-bold uppercase mb-1">Kat: ${catName}</span>
+                            <div class="flex gap-2">
+                                <button onclick="App.photoAction(${p.id}, 'approve')" class="bg-green-600 p-3 rounded-full hover:scale-110 shadow-lg"><i class="fa-solid fa-check text-xs"></i></button>
+                                <button onclick="App.photoAction(${p.id}, 'delete')" class="bg-red-600 p-3 rounded-full hover:scale-110 shadow-lg"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                            </div>
                         </div>
                         <p class="absolute bottom-2 left-2 text-[8px] font-black text-white bg-black/60 px-2 py-0.5 rounded-full uppercase">@${p.uploader}</p>
                     </div>`;
                 });
                 h += `</div></div>`;
 
-                // 4. Destek Hattı
-                h += `<div class="bg-[#0a0a0a] p-8 rounded-[2rem] border border-gray-800">
-                    <h3 class="text-[10px] font-black text-purple-500 uppercase mb-5 tracking-[0.3em] italic">Gelen Yardım Talepleri</h3>
-                    <div class="space-y-4">`;
-                this.db.support.forEach((s, idx) => {
-                    h += `<div class="p-5 bg-white/[0.03] rounded-2xl border border-gray-900">
-                        <div class="flex justify-between mb-2"><span class="text-[10px] font-black text-white uppercase italic tracking-widest">${s.user}</span></div>
-                        <p class="text-xs text-gray-400 mb-4 leading-relaxed font-medium">${s.msg}</p>
-                        <button onclick="App.replySupport(${idx})" class="text-[10px] text-blue-500 font-black hover:text-blue-400 uppercase tracking-widest transition-colors"><i class="fa-solid fa-reply mr-1"></i> CEVAPLA VE SİSTEMDEN KALDIR</button>
+                // --- 3. KATEGORİ TALEPLERİ (YENİ EKLENEN KISIM) ---
+                const catReqs = this.db.catalogRequests || [];
+                h += `<div class="bg-[#0a0a0a] p-6 rounded-[2rem] border border-gray-800 border-l-4 border-purple-500">
+                    <h3 class="text-[10px] font-black text-purple-500 uppercase mb-4 tracking-[0.2em]">Kategori Talepleri</h3>
+                    <div class="space-y-2">`;
+                if(catReqs.length === 0) h += `<p class="text-[9px] text-gray-600 italic">Bekleyen kategori talebi yok.</p>`;
+                catReqs.forEach(r => {
+                    h += `<div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-gray-800">
+                        <div>
+                            <p class="text-xs font-black text-white uppercase">${r.name}</p>
+                            <p class="text-[9px] text-gray-500">Talep Eden: ${r.requester}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="App.approveCatReq('${r.id}', '${r.name}')" class="bg-green-600 hover:bg-green-500 text-white p-2 rounded-lg text-[9px] font-bold">ONAYLA</button>
+                            <button onclick="App.deleteCatReq('${r.id}')" class="bg-red-600 hover:bg-red-500 text-white p-2 rounded-lg text-[9px] font-bold">REDDET</button>
+                        </div>
                     </div>`;
                 });
-                if(this.db.support.length === 0) h += `<p class="text-[10px] text-gray-700 italic font-bold uppercase tracking-widest">Kutu şu an boş.</p>`;
                 h += `</div></div>`;
+                // ----------------------------------------------------
+
+                // 4. KULLANICILAR
+                const activeUsers = this.db.users.filter(u => u.approved && u.user !== 'admin');
+                h += `<div class="bg-[#0a0a0a] p-6 rounded-[2rem] border border-gray-800">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Aktif Üyeler Yönetimi</h3>
+                        <input type="text" placeholder="Üye ara..." onkeyup="App.filterUsers(this.value)" class="bg-black border border-gray-800 px-3 py-1 text-[9px] rounded-lg text-white w-32 focus:border-blue-500 outline-none">
+                    </div>
+                    <div id="activeUserList" class="space-y-2 max-h-[400px] overflow-y-auto custom-scroll">`;
+                activeUsers.forEach(u => {
+                    // VIP Süre Kontrolü
+                    let vipStatus = 'NORMAL';
+                    let vipClass = 'bg-gray-800 text-white';
+                    if (u.viewAll) {
+                        vipStatus = 'VIP';
+                        vipClass = 'bg-green-600 text-white';
+                        if (u.vipExpiry && u.vipExpiry > Date.now()) {
+                            const mins = Math.ceil((u.vipExpiry - Date.now()) / 60000);
+                            vipStatus = `VIP (${mins} dk)`;
+                        }
+                    }
+
+                    h += `<div class="user-row flex items-center justify-between p-3 bg-white/[0.02] rounded-xl border border-gray-900">
+                        <div class="username-field"><span class="text-xs font-black text-white uppercase">${u.user}</span> <span class="text-[9px] text-gray-600 ml-1">ID: ${u.id}</span></div>
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="time-${u.id}" placeholder="Dk" class="w-12 bg-black border border-gray-800 rounded px-1 text-[9px] text-center text-white h-6 outline-none focus:border-purple-500" title="Boş bırakılırsa süresiz olur">
+                            <button onclick="App.toggleBlurPower(${u.id})" class="${vipClass} hover:opacity-80 px-2 py-1 rounded-lg text-[8px] font-black w-20">${vipStatus}</button>
+                            <button onclick="App.admUserAction(${u.id}, 'delete')" class="bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white px-2 py-1 rounded-lg text-[8px] font-black">SİL</button>
+                        </div>
+                    </div>`;
+                });
+                h += `</div></div>`;
+                
+                // Onay Bekleyenler
+                const pendingUsers = this.db.users.filter(u => !u.approved && u.user !== 'admin');
+                if(pendingUsers.length > 0) {
+                    h += `<div class="bg-[#0a0a0a] p-6 rounded-[2rem] border border-gray-800 border-l-4 border-yellow-500"><h3 class="text-[10px] font-black text-yellow-500 mb-2">Onay Bekleyenler</h3>`;
+                    pendingUsers.forEach(u => {
+                         h += `<div class="flex justify-between items-center mb-1"><span class="text-xs">${u.user}</span><div><button onclick="App.admUserAction(${u.id},'approve')" class="text-green-500 mr-2 font-bold text-[9px]">ONAY</button><button onclick="App.admUserAction(${u.id},'delete')" class="text-red-500 font-bold text-[9px]">RED</button></div></div>`;
+                    });
+                    h += `</div>`;
+                }
 
                 h += `</div>`; area.innerHTML = h;
             },
 
-            // DUYURU FONKSİYONLARI
+            filterUsers: function(val) {
+                const rows = document.querySelectorAll('.user-row');
+                rows.forEach(row => {
+                    const txt = row.querySelector('.username-field').innerText.toLowerCase();
+                    row.style.display = txt.includes(val.toLowerCase()) ? 'flex' : 'none';
+                });
+            },
+
+            reqCatModal: function() {
+                // Admin ise Direkt Ekle, Değilse Talep Et
+                if (this.user.role === 'admin') {
+                    Swal.fire({
+                        title: 'Yeni Kategori Oluştur',
+                        input: 'text',
+                        inputPlaceholder: 'Kategori Adı',
+                        showCancelButton: true,
+                        confirmButtonText: 'Oluştur',
+                        confirmButtonColor: '#2563eb',
+                        background: '#111', color: '#fff'
+                    }).then(r => {
+                        if(r.value) App.addCatalogDb(r.value);
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Kategori Talebi',
+                        input: 'text',
+                        inputPlaceholder: 'İstediğiniz kategori adı...',
+                        showCancelButton: true,
+                        confirmButtonText: 'Talep Gönder',
+                        background: '#111', color: '#fff'
+                    }).then(r => {
+                        if(r.value) App.sendCatReq(r.value);
+                    });
+                }
+            },
+            
+            sendCatReq: function(name) { console.log("Request sent:", name); },
+            createCatalog: function() { 
+                Swal.fire({title:'Yeni Kategori', input:'text', background:'#111', color:'#fff'}).then(r => {
+                    if(r.value) App.addCatalogDb(r.value);
+                });
+            },
+            addCatalogDb: function(name) {}, // Firebase override yapacak
+            approveCatReq: function(id, name) {},
+            deleteCatReq: function(id) {},
+            deleteCatalog: function(id) {},
+
             saveAnnouncement: function() {
-                const val = document.getElementById('newAnnInp').value;
-                this.db.announcement = val;
-                this.save();
-                this.renderUI();
-                Swal.fire({icon:'success', text:'Duyuru tüm sistemde güncellendi!', background:'#111', color:'#fff'});
+                // Firebase override yapacak
             },
 
-            clearAnnouncement: function() {
-                this.db.announcement = "";
-                this.save();
-                this.renderUI();
-                this.renderAdmin();
-                Swal.fire({icon:'info', text:'Duyuru kaldırıldı.', background:'#111', color:'#fff'});
-            },
-
-            // --- TEMEL MANTIK ---
             openCatalog: function(id) {
-                this.activeGroup = null; document.getElementById('chatPanel').classList.add('hidden-force');
                 const cat = this.db.catalogs.find(c => c.id === id);
-                document.getElementById('pageHeader').innerText = cat.name;
-                this.renderGrid(this.db.photos.filter(p => p.target === id && p.status === 'approved'), 'catalog', id);
-            },
-
-            openGroup: function(gid) {
-                this.activeGroup = gid; document.getElementById('chatPanel').classList.remove('hidden-force');
-                const grp = this.db.groups.find(g => g.id === gid);
-                document.getElementById('pageHeader').innerText = grp.name;
-                this.renderGrid(this.db.photos.filter(p => p.target === gid), 'group', gid);
-                this.renderChat();
+                if(cat) {
+                    document.getElementById('pageHeader').innerText = cat.name;
+                    this.renderGrid(this.db.photos.filter(p => p.target === id && p.status === 'approved'), 'catalog', id);
+                }
             },
 
             renderGrid: function(photos, type, targetId) {
                 const area = document.getElementById('contentArea');
-                const canView = (this.user.role === 'admin') || (this.user.viewAll === true);
+                
+                // GÖRÜNTÜLEME YETKİ KONTROLÜ
+                let canView = false;
+                if (this.user.role === 'admin') {
+                    canView = true;
+                } else if (this.user.viewAll) {
+                    // Eğer süre tanımlıysa ve şu anki zaman süreyi geçtiyse yetki yok
+                    if (this.user.vipExpiry && Date.now() > this.user.vipExpiry) {
+                        canView = false;
+                    } else {
+                        canView = true;
+                    }
+                }
+                
                 let h = `<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">`;
                 photos.forEach((p, idx) => {
-                    const lock = !canView && (idx >= 5);
+                    // İlk 5 resim herkese açık, sonrası VIP
+                    const isLocked = !canView && (idx >= 5);
+                    
+                    const clickAction = isLocked 
+                        ? "Swal.fire({title:'Erişim Kısıtlı', text:'VIP üyelik veya süre gerekli.', icon:'info', background:'#111', color:'#fff'})" 
+                        : `App.lightbox('${p.src}')`;
+
                     h += `<div class="aspect-square bg-black rounded-3xl relative group overflow-hidden border border-gray-900 shadow-2xl">
-                        <img src="${p.src}" class="w-full h-full object-cover transition-all duration-700 ${lock ? 'blur-lock' : 'group-hover:scale-110'}" onclick="${!lock ? `App.lightbox('${p.src}')` : ''}">
-                        ${lock ? `<div class="absolute inset-0 flex flex-col items-center justify-center bg-black/70 z-20"><i class="fa-solid fa-lock text-white/20 text-4xl mb-2"></i><span class="text-[8px] text-white/40 font-black tracking-widest uppercase">VIP Gerekli</span></div>` : ''}
+                        <img src="${p.src}" 
+                             class="w-full h-full object-cover transition-all duration-700 ${isLocked ? 'blur-lock' : 'group-hover:scale-110'}" 
+                             onclick="${clickAction}">
+                        ${isLocked ? `<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20"><i class="fa-solid fa-lock text-white/50 text-4xl mb-2"></i></div>` : ''}
+                        
                         ${this.user.role === 'admin' ? `<button onclick="App.deletePhoto(${p.id}, '${type}', '${targetId}')" class="absolute top-4 right-4 bg-red-600 text-white p-2.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 z-30 shadow-2xl"><i class="fa-solid fa-trash-can text-[10px]"></i></button>` : ''}
                     </div>`;
                 });
-                h += `</div>`; area.innerHTML = h;
+                h += `</div>`; 
+                area.innerHTML = h;
             },
 
-            deletePhoto: function(pid, type, targetId) {
-                this.db.photos = this.db.photos.filter(x => x.id !== pid);
-                this.save();
-                if(type === 'catalog') this.openCatalog(targetId); else if(type === 'group') this.openGroup(targetId);
+            deletePhoto: async function(pid, type, targetId) {
+                if(this.user.role !== 'admin') return;
+                try {
+                    window.dispatchEvent(new CustomEvent('reqDeletePhoto', { detail: pid }));
+                    this.db.photos = this.db.photos.filter(x => x.id !== pid);
+                    this.renderGrid(this.db.photos.filter(p => p.target === targetId), type, targetId);
+                } catch(e) {}
             },
+            
+            photoAction: function(pid, act) {}, // Firebase override
 
             uploadModal: function() {
                 const sel = document.getElementById('targetSel'); sel.innerHTML = '<option disabled selected>NEREYE YÜKLENECEK?</option>';
-                this.db.catalogs.forEach(c => sel.innerHTML += `<option value="${c.id}">Katalog: ${c.name}</option>`);
-                this.db.groups.filter(g => g.members.includes(this.user.id)).forEach(g => sel.innerHTML += `<option value="${g.id}">Grup: ${g.name}</option>`);
+                this.db.catalogs.forEach(c => sel.innerHTML += `<option value="${c.id}">Kategori: ${c.name}</option>`);
                 this.modal('uploadModal');
             },
 
@@ -365,13 +489,20 @@
             },
 
             doUpload: function() {
+                const now = Date.now();
+                if(now - this.lastUploadTime < 3000) return Swal.fire({icon:'warning', title:'Çok Hızlı!', text:'Bekleyiniz.', background:'#111', color:'#fff'});
+                if(this.user.role !== 'admin') {
+                    if(this.db.photos.filter(p => p.uploader === this.user.user && p.status === 'pending').length >= 10) return Swal.fire({icon:'error', text:'Limit dolu.', background:'#111', color:'#fff'});
+                }
                 const src = document.getElementById('prevImg').src;
                 const target = document.getElementById('targetSel').value;
                 if(!src || !target) return;
-                this.db.photos.push({id:Date.now(), src:src, target:target, uploader:this.user.user, status: (this.user.role==='admin' || target.startsWith('grp') ? 'approved' : 'pending')});
-                this.save(); 
-                this.closeModal('uploadModal');
-                Swal.fire({icon:'success', text: this.user.role==='admin' ? 'Kayıt Edildi' : 'Admin Onayına Gönderildi!', background:'#111', color:'#fff'});
+                
+                this.lastUploadTime = now;
+                const status = (this.user.role === 'admin') ? 'approved' : 'pending';
+                this.db.photos.push({id:Date.now(), src:src, target:target, uploader:this.user.user, status: status});
+                this.save(); this.closeModal('uploadModal');
+                Swal.fire({icon:'success', text: status==='pending'?'Onaya gönderildi':'Yüklendi', background:'#111', color:'#fff'});
             },
 
             changePassModal: function() {
@@ -396,65 +527,26 @@
 
             openSupport: function() {
                 Swal.fire({
-                    title: 'Canlı Destek Merkezi',
+                    title: 'Canlı Destek',
                     input: 'textarea',
-                    inputPlaceholder: 'Talebinizi detaylandırın...',
-                    showCancelButton: true, confirmButtonText: 'Mesajı Gönder', background:'#111', color:'#fff'
+                    inputPlaceholder: 'Sorununuz nedir?',
+                    showCancelButton: true, confirmButtonText: 'Gönder', background:'#111', color:'#fff'
                 }).then(r => {
-                    if(r.value) {
-                        this.db.support.push({id:Date.now(), uid:this.user.id, user:this.user.user, msg:r.value});
-                        this.save(); Swal.fire({icon:'success', text:'Mesajınız admin onayına iletildi.', background:'#111', color:'#fff'});
-                    }
+                    if(r.value) App.sendSupportDb(r.value);
                 });
             },
+            sendSupportDb: function(msg) {}, 
+            replySupport: function(docId, uid) {},
 
-            replySupport: function(idx) {
-                const s = this.db.support[idx];
-                Swal.fire({ title: 'Cevap Gönder', input: 'text', showCancelButton: true, background:'#111', color:'#fff' }).then(r => {
-                    if(r.value) {
-                        const u = this.db.users.find(x => x.id === s.uid);
-                        if(u) u.notifs.push({msg: "Sistem Yanıtı: " + r.value});
-                        this.db.support.splice(idx, 1);
-                        this.save(); this.renderAdmin();
-                    }
-                });
-            },
+            admUserAction: function(uid, act) {}, // Firebase override
 
-            // YARDIMCI ARAÇLAR
-            sendMsg: function(e) {
-                e.preventDefault(); const i = document.getElementById('msgInput'); if(!i.value.trim()) return;
-                const grp = this.db.groups.find(g => g.id === this.activeGroup);
-                grp.chats.push({uid:this.user.id, user:this.user.user, msg:i.value});
-                this.save(); i.value = ''; this.renderChat();
-            },
-            renderChat: function() {
-                const grp = this.db.groups.find(g => g.id === this.activeGroup); if(!grp) return;
-                const box = document.getElementById('chatBox'); box.innerHTML = '';
-                grp.chats.forEach(c => {
-                    const me = c.uid === this.user.id;
-                    box.innerHTML += `<div class="chat-bubble ${me ? 'chat-me' : 'chat-you'} shadow-lg"><p class="text-[8px] opacity-50 mb-1 font-black italic uppercase">${c.user}</p><p class="text-xs text-white font-medium">${c.msg}</p></div>`;
-                });
-                box.scrollTop = box.scrollHeight;
-            },
-            admUserAction: function(uid, act) {
-                const idx = this.db.users.findIndex(x => x.id === uid);
-                if(idx===-1) return;
-                if(act==='approve') this.db.users[idx].approved = true;
-                if(act==='delete') if(confirm('Bu kullanıcıyı kalıcı olarak siliyorsun?')) this.db.users.splice(idx, 1);
-                this.save(); this.renderAdmin();
-            },
-            photoAction: function(pid, act) {
-                const idx = this.db.photos.findIndex(x => x.id === pid);
-                if(idx===-1) return;
-                if(act==='approve') this.db.photos[idx].status = 'approved';
-                if(act==='delete') this.db.photos.splice(idx, 1);
-                this.save(); this.renderAdmin();
-            },
             toggleAuth: (reg) => {
                 document.getElementById('loginForm').classList.toggle('hidden-force', reg);
                 document.getElementById('regForm').classList.toggle('hidden-force', !reg);
             },
-            toggleBlurPower: function(uid) { const u = this.db.users.find(x => x.id === uid); if(u) u.viewAll = !u.viewAll; this.save(); this.renderAdmin(); },
+            toggleBlurPower: function(uid) { 
+                // Local only logic replaced by Firebase override
+            },
             toggleNotif: function() { document.getElementById('notifPanel').classList.toggle('hidden-force'); this.renderNotifs(); },
             renderNotifs: function() {
                 const l = document.getElementById('notifList'); l.innerHTML = '';
@@ -474,14 +566,21 @@
         };
 
         App.init();
-        document.addEventListener('keyup', (e) => { if (e.key === 'PrintScreen') { document.getElementById('screenMask').classList.remove('hidden-force'); setTimeout(() => document.getElementById('screenMask').classList.add('hidden-force'), 5000); } });
+
+        document.addEventListener('keyup', (e) => { 
+            if (e.key === 'PrintScreen') { 
+                document.getElementById('screenMask').style.display = 'flex'; 
+                setTimeout(() => document.getElementById('screenMask').style.display = 'none', 3000); 
+                navigator.clipboard.writeText('Ekran görüntüsü almak yasaktır!');
+            } 
+        });
+        document.addEventListener('contextmenu', event => event.preventDefault());
     </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-        // Kullanıcı Ayarları
         const firebaseConfig = {
             apiKey: "AIzaSyAg1smzGukoS6hieJkWFCHyeiGeP2NzMBo",
             authDomain: "prosys-19788.firebaseapp.com",
@@ -491,113 +590,273 @@
             appId: "1:501709271602:web:27e759c206074c5114822b"
         };
 
-        // Firebase Başlatma
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        console.log("🔥 ProSys Online Modu Devrede");
+        window.addEventListener('reqDeletePhoto', async (e) => {
+            const pid = e.detail;
+            try { await deleteDoc(doc(db, "photos", pid.toString())); } catch(err) { console.error(err); }
+        });
 
-        // 1. KAYIT İŞLEMİNİ BULUTA BAĞLA
         const originalRegister = App.register;
         App.register = async function() {
             const oldLen = this.db.users.length;
             originalRegister.apply(this, arguments); 
-            const newLen = this.db.users.length;
+            if (this.db.users.length > oldLen) {
+                const newUser = this.db.users[this.db.users.length - 1];
+                try { await setDoc(doc(db, "requests", newUser.id.toString()), newUser); } catch (e) { console.error(e); }
+            }
+        };
 
-            if (newLen > oldLen) {
-                const newUser = this.db.users[newLen - 1];
-                try {
-                    await setDoc(doc(db, "requests", newUser.id.toString()), newUser);
-                    console.log("✅ Firebase: Kayıt isteği gönderildi.");
-                } catch (e) {
-                    console.error("Firebase Hatası:", e);
+        // ----------------------------------------------------
+        // DÜZELTİLEN VE EKLENEN YERLER
+        // ----------------------------------------------------
+
+        // 1. DUYURU KAYDETME
+        App.saveAnnouncement = async function() {
+            const val = document.getElementById('newAnnInp').value;
+            if(!val) return;
+            this.db.announcement = val; // Lokal güncelle
+            try { 
+                await setDoc(doc(db, "system_data", "global"), { announcement: val }, { merge: true }); 
+                Swal.fire({icon:'success', text:'Duyuru Yayınlandı!', background:'#111', color:'#fff'});
+            } catch(e) { console.error(e); }
+        };
+
+        // 2. KATEGORİ SİLME
+        App.deleteCatalog = async function(catId) {
+            Swal.fire({
+                title: 'Kategori Silinsin mi?',
+                text: "İçindeki resimler sistemde kalır ama bu kategori erişilemez olur.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, Sil',
+                background: '#111', color: '#fff'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await deleteDoc(doc(db, "catalogs", catId));
+                        Swal.fire({icon:'success', title:'Silindi', background:'#111', color:'#fff', timer: 1500, showConfirmButton: false});
+                    } catch(e) { console.error(e); }
+                }
+            });
+        };
+
+        // 3. ADMİN ÜYE İŞLEMLERİ (SİLME / ONAY) - İSİM TEKRAR KULLANILABİLİR
+        App.admUserAction = async function(uid, act) {
+            const userIdStr = uid.toString();
+            
+            if (act === 'delete') {
+                Swal.fire({
+                    title: 'Kullanıcıyı Sil?',
+                    text: "Bu kullanıcı silinecek ve ismi tekrar alınabilir olacak.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Evet, Sil',
+                    background: '#111', color: '#fff'
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        try {
+                            // Veritabanından sil (İsim boşa çıkar)
+                            await deleteDoc(doc(db, "users", userIdStr));
+                            // İsteklerde varsa ordan da sil
+                            await deleteDoc(doc(db, "requests", userIdStr));
+                            Swal.fire({icon:'success', text:'Kullanıcı Silindi', background:'#111', color:'#fff', timer: 1500, showConfirmButton: false});
+                        } catch (e) { console.error(e); }
+                    }
+                });
+            } else if (act === 'approve') {
+                const targetUser = this.db.users.find(x => x.id === uid);
+                if (targetUser) {
+                    try {
+                        await setDoc(doc(db, "users", userIdStr), {...targetUser, approved: true});
+                        await deleteDoc(doc(db, "requests", userIdStr));
+                        Swal.fire({icon:'success', text:'Kullanıcı Onaylandı', background:'#111', color:'#fff', timer: 1500, showConfirmButton: false});
+                    } catch (e) { console.error(e); }
                 }
             }
         };
 
-        // 2. ADMIN İŞLEMLERİNİ BULUTA BAĞLA
-        const originalAdmAction = App.admUserAction;
-        App.admUserAction = async function(uid, act) {
-            const targetUser = this.db.users.find(x => x.id === uid);
-            originalAdmAction.apply(this, arguments);
-            if (!targetUser) return;
+        // 4. BLUR (VIP) AÇMA KAPATMA ve SÜRE AYARI
+        App.toggleBlurPower = async function(uid) {
+            const u = this.db.users.find(x => x.id === uid);
+            if(!u) return;
+
+            // Input'tan süreyi al
+            const timeInput = document.getElementById(`time-${uid}`);
+            const minutes = timeInput ? parseInt(timeInput.value) : 0;
+            
+            const newStatus = !u.viewAll;
+            let vipExpiry = null;
+
+            // Eğer VIP açılıyorsa ve süre girilmişse zaman damgası oluştur
+            if (newStatus && minutes > 0) {
+                vipExpiry = Date.now() + (minutes * 60 * 1000);
+            } else if (!newStatus) {
+                // Kapatılıyorsa süreyi sıfırla
+                vipExpiry = null;
+            }
 
             try {
-                const userIdStr = uid.toString();
-                if (act === 'approve') {
-                    const userToMove = {...targetUser, approved: true};
-                    await setDoc(doc(db, "users", userIdStr), userToMove);
-                    await deleteDoc(doc(db, "requests", userIdStr));
-                } 
-                else if (act === 'delete') {
-                    await deleteDoc(doc(db, "requests", userIdStr));
-                    await deleteDoc(doc(db, "users", userIdStr));
-                }
+                await updateDoc(doc(db, "users", uid.toString()), { 
+                    viewAll: newStatus,
+                    vipExpiry: vipExpiry 
+                });
+                if(timeInput) timeInput.value = '';
+            } catch(e) { console.error(e); }
+        };
+
+        // ----------------------------------------------------
+
+        // 5. FOTOĞRAF YÜKLEME
+        const originalDoUpload = App.doUpload;
+        App.doUpload = async function() {
+            const src = document.getElementById('prevImg').src;
+            const target = document.getElementById('targetSel').value;
+            if(!src || !target) return;
+            const status = (App.user.role === 'admin') ? 'approved' : 'pending';
+            const newPhoto = { id: Date.now(), src: src, target: target, uploader: App.user.user, status: status };
+
+            try {
+                await setDoc(doc(db, "photos", newPhoto.id.toString()), newPhoto);
+                App.closeModal('uploadModal');
+                Swal.fire({icon:'success', text: status==='pending'?'Onaya gönderildi':'Yüklendi', background:'#111', color:'#fff'});
             } catch (e) { console.error(e); }
         };
 
-        // 3. DUYURULARI BULUTA BAĞLA
-        const originalSaveAnn = App.saveAnnouncement;
-        App.saveAnnouncement = async function() {
-            originalSaveAnn.apply(this, arguments);
-            try { await setDoc(doc(db, "system_data", "global"), { announcement: this.db.announcement }); } catch(e) {}
-        };
-
-        const originalClearAnn = App.clearAnnouncement;
-        App.clearAnnouncement = async function() {
-            originalClearAnn.apply(this, arguments);
-            try { await setDoc(doc(db, "system_data", "global"), { announcement: "" }); } catch(e) {}
-        };
-
-        // 4. CANLI DİNLEME (Listener)
-        function startListening() {
-            // A. Bekleyen Kayıtlar
-            onSnapshot(collection(db, "requests"), (snapshot) => {
-                snapshot.docChanges().forEach((change) => {
-                    const d = change.doc.data();
-                    const exists = App.db.users.find(u => u.id == d.id);
-                    if (change.type === "added" && !exists) {
-                        App.db.users.push(d);
-                        refreshAdminUI();
-                    }
-                    if (change.type === "removed") {
-                        const idx = App.db.users.findIndex(u => u.id == d.id && !u.approved);
-                        if(idx > -1) { App.db.users.splice(idx, 1); refreshAdminUI(); }
-                    }
-                });
-                App.save();
-            });
-
-            // B. Onaylı Kullanıcılar
-            onSnapshot(collection(db, "users"), (snapshot) => {
-                snapshot.docChanges().forEach((change) => {
-                    const d = change.doc.data();
-                    const idx = App.db.users.findIndex(u => u.id == d.id);
-                    if (change.type === "added") {
-                        if(idx === -1) App.db.users.push(d); else App.db.users[idx] = d;
-                    }
-                    if (change.type === "modified" && idx > -1) App.db.users[idx] = d;
-                    if (change.type === "removed" && idx > -1) App.db.users.splice(idx, 1);
-                    
-                    refreshAdminUI();
-                });
-                App.save();
-            });
-
-            // C. Duyurular
-            onSnapshot(doc(db, "system_data", "global"), (docSnap) => {
-                if (docSnap.exists()) {
-                    App.db.announcement = docSnap.data().announcement || "";
-                    App.renderUI();
-                    const annInp = document.getElementById('newAnnInp');
-                    if(annInp) annInp.value = App.db.announcement;
+        // 6. FOTO ONAY/SİL
+        App.photoAction = async function(pid, act) {
+            try {
+                if(act === 'approve') {
+                    await updateDoc(doc(db, "photos", pid.toString()), { status: 'approved' });
+                } else if (act === 'delete') {
+                    await deleteDoc(doc(db, "photos", pid.toString()));
                 }
+                if(document.getElementById('contentArea')) App.renderAdmin();
+            } catch(e) { console.error(e); }
+        };
+
+        // 7. KATEGORİ EKLEME (GÜNCEL: DB'YE KAYIT)
+        App.addCatalogDb = async function(name) {
+            if(!name) return;
+            try { 
+                const newId = 'cat_' + Date.now(); 
+                await setDoc(doc(db, "catalogs", newId), { id: newId, name: name }); 
+                Swal.fire({icon:'success', text:'Kategori Oluşturuldu!', background:'#111', color:'#fff', timer: 1500, showConfirmButton: false});
+            } catch(e) { console.error(e); }
+        };
+
+        App.sendCatReq = async function(name) {
+            if(!name) return;
+            try { await addDoc(collection(db, "catalog_requests"), { name: name, requester: App.user.user, reqId: App.user.id }); Swal.fire({icon:'success', text:'İletildi.'}); } catch(e) {}
+        };
+        App.approveCatReq = async function(docId, name) { 
+            try { 
+                // Önce kategoriyi oluştur
+                await App.addCatalogDb(name); 
+                // Sonra talebi sil
+                await deleteDoc(doc(db, "catalog_requests", docId)); 
+                if(document.getElementById('contentArea')) App.renderAdmin(); 
+            } catch(e) { console.error(e); } 
+        };
+        App.deleteCatReq = async function(docId) { 
+            try { 
+                await deleteDoc(doc(db, "catalog_requests", docId)); 
+                Swal.fire({icon:'success', text:'Talep Reddedildi.', background:'#111', color:'#fff', timer: 1000, showConfirmButton:false});
+                if(document.getElementById('contentArea')) App.renderAdmin(); 
+            } catch(e) { console.error(e); } 
+        };
+        App.sendSupportDb = async function(msg) { if(!msg) return; try { await addDoc(collection(db, "support"), { uid: App.user.id, user: App.user.user, msg: msg, date: Date.now() }); Swal.fire({icon:'success', text:'Gönderildi'}); } catch(e) {} };
+        App.replySupport = async function(docId, targetUid) { Swal.fire({ title: 'Cevap Yaz', input: 'text', showCancelButton: true }).then(async (r) => { if(r.value) { try { await deleteDoc(doc(db, "support", docId)); Swal.fire({icon:'success', text:'Yanıtlandı.'}); App.renderAdmin(); } catch(e) {} } }); };
+
+        function startListening() {
+            onSnapshot(collection(db, "requests"), (snap) => {
+                snap.docChanges().forEach((c) => {
+                    const d = c.doc.data();
+                    if (c.type === "added" && !App.db.users.find(u => u.id == d.id)) App.db.users.push(d);
+                    if (c.type === "removed") { const idx = App.db.users.findIndex(u => u.id == d.id && !u.approved); if(idx > -1) App.db.users.splice(idx, 1); }
+                });
+                refreshAdminUI();
+            });
+
+            onSnapshot(collection(db, "users"), (snap) => {
+                snap.docChanges().forEach((c) => {
+                    const d = c.doc.data();
+                    const idx = App.db.users.findIndex(u => u.id == d.id);
+                    if (c.type === "added" && idx === -1) App.db.users.push(d);
+                    else if (c.type === "modified" && idx > -1) App.db.users[idx] = d;
+                    else if (c.type === "removed" && idx > -1) App.db.users.splice(idx, 1);
+                });
+                App.renderUI();
+                refreshAdminUI();
+
+                // --- SİLİNEN KULLANICIYI ANINDA ATMA (KICK) MANTIĞI ---
+                // Eğer şu an giriş yapmış bir kullanıcı varsa (ve admin değilse)
+                if (App.user && App.user.role !== 'admin') {
+                    // Mevcut kullanıcı listesinde (App.db.users) kendi ID'si hala var mı diye bakar.
+                    const amIStillHere = App.db.users.find(u => u.id === App.user.id);
+                    
+                    // Eğer listede yoksam (Admin beni silmişse)
+                    if (!amIStillHere) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'HESABINIZ SİLİNDİ',
+                            text: 'Yönetici tarafından erişiminiz sonlandırıldı.',
+                            showConfirmButton: false,
+                            allowOutsideClick: false,
+                            timer: 3000
+                        }).then(() => {
+                            location.reload(); // Sayfayı yenileyerek çıkış yaptır
+                        });
+                    }
+                }
+                // ------------------------------------------------------
+            });
+
+            onSnapshot(collection(db, "catalogs"), (snap) => {
+                App.db.catalogs = []; snap.docs.forEach(doc => App.db.catalogs.push(doc.data()));
+                App.renderUI(); refreshAdminUI();
+            });
+
+            onSnapshot(collection(db, "photos"), (snap) => {
+                snap.docChanges().forEach((change) => {
+                    const d = change.doc.data();
+                    const idx = App.db.photos.findIndex(p => p.id == d.id);
+                    if (change.type === "added" || change.type === "modified") {
+                        if(idx === -1) App.db.photos.push(d); else App.db.photos[idx] = d;
+                    }
+                    if (change.type === "removed" && idx > -1) {
+                        App.db.photos.splice(idx, 1);
+                    }
+                });
+                const header = document.getElementById('pageHeader').innerText;
+                const cat = App.db.catalogs.find(c => c.name === header);
+                if(cat) App.openCatalog(cat.id);
+                refreshAdminUI();
+            });
+
+            onSnapshot(doc(db, "system_data", "global"), (snap) => {
+                if (snap.exists()) { App.db.announcement = snap.data().announcement || ""; App.renderUI(); }
+            });
+
+            onSnapshot(collection(db, "catalog_requests"), (snap) => {
+                App.db.catalogRequests = []; snap.docs.forEach(doc => App.db.catalogRequests.push({id: doc.id, ...doc.data()}));
+                refreshAdminUI();
+            });
+
+            onSnapshot(collection(db, "support"), (snap) => {
+                App.db.support = []; snap.docs.forEach(doc => App.db.support.push({docId: doc.id, ...doc.data()}));
+                refreshAdminUI();
             });
         }
 
         function refreshAdminUI() {
-            if (App.user && App.user.role === 'admin' && !document.getElementById('contentArea').classList.contains('hidden-force')) {
-                try { App.renderAdmin(); } catch(e) {}
+            if (App.user && App.user.role === 'admin' && document.getElementById('pageHeader').innerText === 'KRALİYET YÖNETİM MERKEZİ') {
+                App.renderAdmin();
             }
         }
 
